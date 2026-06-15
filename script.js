@@ -1,3 +1,5 @@
+console.log(formMessage);
+
 document.addEventListener("DOMContentLoaded", function () {
     createGallery("beforeGallery", "before", 8, "폐기물처리 작업 전 현장");
     createGallery("processGallery", "process", 8, "폐기물처리 작업 중 현장");
