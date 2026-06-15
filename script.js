@@ -90,6 +90,7 @@ if (contactForm) {
         if (!privacyCheck.checked) {
             formMessage.textContent = "개인정보 수집 및 이용에 동의해 주세요.";
             formMessage.style.color = "#f59e0b";
+            formMessage.classList.add("show");
             return;
         }
         
@@ -114,8 +115,8 @@ if (contactForm) {
 
             formMessage.textContent =
                 "상담접수가 완료되었습니다. 확인 후 연락드리겠습니다.";
-
             formMessage.style.color = "#10b981";
+            formMessage.classList.add("show");
 
             contactForm.reset();
 
@@ -125,8 +126,9 @@ if (contactForm) {
 
             formMessage.textContent =
                 "전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-
             formMessage.style.color = "#ef4444";
+            formMessage.classList.add("show");
+
         }
 
         submitBtn.disabled = false;
