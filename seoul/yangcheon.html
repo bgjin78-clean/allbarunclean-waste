@@ -120,14 +120,45 @@
   </div>
 </section>
 
+
 <section class="section contact">
   <div class="container contact-box">
-    <h2>양천구 폐기물처리 상담</h2>
-    <p>빠른 상담은 전화 문의가 가장 정확합니다.</p>
-    <div class="hero-buttons" style="margin-top:25px;">
-      <a href="tel:010-4393-2414" class="btn primary">전화상담 010-4393-2414</a>
-      <a href="../index.html#contact" class="btn secondary">상담접수하기</a>
-    </div>
+    <h2>서울 양천구 폐기물처리 상담접수</h2>
+    <p>사진을 준비해두시면 더 빠르게 안내받을 수 있습니다.</p>
+
+    <form id="contactForm">
+      <input type="text" placeholder="이름" required>
+      <input type="tel" placeholder="연락처" required>
+      <input type="text" placeholder="작업 지역" value="서울 양천구" required>
+
+      <select required>
+        <option value="">서비스 선택</option>
+        <option>쓰레기집청소</option>
+        <option>빈집정리</option>
+        <option>가정폐기물처리</option>
+        <option>이사폐기물처리</option>
+        <option>폐업폐기물처리</option>
+        <option>기타 폐기물처리</option>
+      </select>
+
+      <textarea placeholder="폐기물 양, 건물 형태, 엘리베이터 유무 등을 적어주세요."></textarea>
+
+      <div class="privacy-box">
+        <label>
+          <input type="checkbox" required>
+          개인정보 수집 및 이용에 동의합니다.
+        </label>
+
+        <div class="privacy-text">
+          수집항목 : 이름, 연락처, 작업지역<br>
+          수집목적 : 상담 및 견적 안내<br>
+          보유기간 : 상담 종료 후 즉시 파기
+        </div>
+      </div>
+
+      <button type="submit">상담 접수하기</button>
+      <p id="formMessage" class="form-message"></p>
+    </form>
   </div>
 </section>
 
@@ -139,5 +170,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="../script.js"></script>
 </body>
 </html>
