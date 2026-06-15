@@ -488,3 +488,32 @@ footer{
     color:#475569;
     line-height:1.9;
 }
+/* REGION LINKS */
+
+.region-links{
+    background:#f8fafc;
+}
+
+.region-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.region-grid a{
+    display:block;
+    background:#ffffff;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
+    font-weight:700;
+    color:#0f172a;
+    box-shadow:0 5px 15px rgba(0,0,0,.05);
+    transition:.3s;
+}
+
+.region-grid a:hover{
+    background:#10b981;
+    color:white;
+    transform:translateY(-3px);
+}
