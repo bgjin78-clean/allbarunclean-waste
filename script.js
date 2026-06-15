@@ -1,11 +1,10 @@
-console.log(formMessage);
-
 document.addEventListener("DOMContentLoaded", function () {
     createGallery("beforeGallery", "before", 8, "폐기물처리 작업 전 현장");
     createGallery("processGallery", "process", 8, "폐기물처리 작업 중 현장");
     createGallery("afterGallery", "after", 8, "폐기물처리 작업 후 현장");
 
     createLightbox();
+    setupContactForm();
 });
 
 function createGallery(containerId, prefix, count, altText) {
@@ -45,15 +44,10 @@ function createLightbox() {
 
     document.body.appendChild(lightbox);
 
-    const closeBtn = lightbox.querySelector(".lightbox-close");
-    closeBtn.addEventListener("click", closeLightbox);
+    lightbox.querySelector(".lightbox-close").addEventListener("click", closeLightbox);
 
     lightbox.addEventListener("click", function (e) {
         if (e.target === lightbox) closeLightbox();
-    });
-
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") closeLightbox();
     });
 }
 
@@ -75,19 +69,22 @@ function closeLightbox() {
     lightbox.classList.remove("active");
     document.body.style.overflow = "";
 }
-emailjs.init("JKsVOKPtnWHIr2BCV");
 
-const contactForm = document.getElementById("contactForm");
-const formMessage = document.getElementById("formMessage");
+function setupContactForm() {
+    emailjs.init("JKsVOKPtnWHIr2BCV");
 
-if (contactForm) {
+    const contactForm = document.getElementById("contactForm");
+    const formMessage = document.getElementById("formMessage");
 
-    contactForm.addEventListener("submit", async function(e) {
+    if (!contactForm || !formMessage) return;
 
+    contactForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const submitBtn = contactForm.querySelector("button");
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
         const privacyCheck = contactForm.querySelector('input[type="checkbox"]');
+
+        formMessage.classList.remove("show");
 
         if (!privacyCheck.checked) {
             formMessage.textContent = "개인정보 수집 및 이용에 동의해 주세요.";
@@ -95,47 +92,40 @@ if (contactForm) {
             formMessage.classList.add("show");
             return;
         }
-        
+
         submitBtn.disabled = true;
-        submitBtn.textContent = "전송 중입니다";
+        submitBtn.textContent = "접수 중입니다...";
+
+        const formData = {
+            name: contactForm.querySelector('input[placeholder="이름"]').value,
+            phone: contactForm.querySelector('input[placeholder="연락처"]').value,
+            region: contactForm.querySelector('input[placeholder*="작업 지역"]').value,
+            service: contactForm.querySelector("select").value,
+            message: contactForm.querySelector("textarea").value
+        };
 
         try {
-
-            const formData = {
-                name: contactForm.querySelector('input[type="text"]').value,
-                phone: contactForm.querySelector('input[type="tel"]').value,
-                region: contactForm.querySelectorAll('input[type="text"]')[1].value,
-                service: contactForm.querySelector('select').value,
-                message: contactForm.querySelector('textarea').value
-            };
-
             await emailjs.send(
                 "allbarunclean-waste",
                 "template_b4ox5js",
                 formData
             );
 
-            formMessage.textContent =
-                "상담접수가 완료되었습니다. 확인 후 연락드리겠습니다.";
+            formMessage.textContent = "상담접수가 완료되었습니다. 확인 후 연락드리겠습니다.";
             formMessage.style.color = "#10b981";
             formMessage.classList.add("show");
 
             contactForm.reset();
 
-        } catch(error) {
+        } catch (error) {
+            console.error("EmailJS Error:", error);
 
-            console.error(error);
-
-            formMessage.textContent =
-                "전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+            formMessage.textContent = "전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
             formMessage.style.color = "#ef4444";
             formMessage.classList.add("show");
-
         }
 
         submitBtn.disabled = false;
         submitBtn.textContent = "상담 접수하기";
-
     });
-
 }
