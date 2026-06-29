@@ -521,6 +521,22 @@ footer{
     color:#475569;
     line-height:1.9;
 }
+
+.seo-content ul{
+    margin:0 0 20px;
+    padding-left:22px;
+    color:#475569;
+}
+
+.seo-content li{
+    margin-bottom:8px;
+    line-height:1.75;
+}
+
+.seo-content a{
+    color:#059669;
+    font-weight:700;
+}
 /* REGION LINKS */
 
 .region-links{
