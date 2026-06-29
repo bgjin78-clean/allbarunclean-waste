@@ -585,11 +585,39 @@ footer{
 
 .hero-main{
     padding:96px 0 88px;
+    color:#fff;
+    background:
+        linear-gradient(120deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.78)),
+        url("./images/main/main-banner.png") center/cover no-repeat;
 }
 
 .hero-main h1{
     font-size:2.8rem;
     max-width:760px;
+    color:#fff;
+    text-shadow:0 2px 14px rgba(0,0,0,0.35);
+}
+
+.hero-main .badge{
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.28);
+    color:#fff;
+}
+
+.hero-main .hero-desc{
+    color:rgba(255,255,255,0.92);
+    opacity:1;
+    text-shadow:0 1px 10px rgba(0,0,0,0.28);
+}
+
+.hero-main .hero-stat{
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.26);
+    backdrop-filter:blur(6px);
+}
+
+.hero-main .hero-stat span{
+    color:rgba(255,255,255,0.88);
 }
 
 .hero-stats{
