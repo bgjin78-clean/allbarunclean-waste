@@ -112,7 +112,7 @@ def html(region, slug, group):
     </div>
 
     <div class="hero-photo">
-      <img src="../images/after-01.jpg" alt="{title_region} 폐기물처리 작업 완료 현장">
+      <img src="../images/main/after-01.jpg" alt="{title_region} 폐기물처리 작업 완료 현장">
     </div>
   </div>
 </section>

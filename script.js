@@ -15,14 +15,14 @@ function createGallery(containerId, prefix, count, altText) {
         const number = String(i).padStart(2, "0");
         const img = document.createElement("img");
 
-        img.src = `./images/${prefix}-${number}.jpg`;
+        img.src = `./images/main/${prefix}-${number}.jpg`;
         img.alt = `${altText} ${i}`;
         img.loading = "lazy";
         img.className = "gallery-img";
 
         img.onerror = function () {
             if (img.src.endsWith(".jpg")) {
-                img.src = `./images/${prefix}-${number}.jpeg`;
+                img.src = `./images/main/${prefix}-${number}.jpeg`;
             }
         };
 
