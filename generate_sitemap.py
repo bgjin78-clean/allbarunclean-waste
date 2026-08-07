@@ -1,7 +1,7 @@
 from pathlib import Path
 from datetime import date
 
-BASE_URL = "https://waste.allbarunclean.com"
+BASE_URL = "https://www.waste.allbarunclean.com"
 
 SEOUL_SLUGS = [
     "gangnam", "gangdong", "gangbuk", "gangseo", "gwanak", "gwangjin", "guro",

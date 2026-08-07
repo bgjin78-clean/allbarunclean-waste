@@ -1,7 +1,7 @@
 import os
 from datetime import date
 
-DOMAIN = "https://waste.allbarunclean.com"
+DOMAIN = "https://www.waste.allbarunclean.com"
 
 SEOUL = [
     ("강남구", "gangnam"),

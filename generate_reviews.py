@@ -2,7 +2,7 @@ from pathlib import Path
 import random
 from datetime import date
 
-BASE_URL = "https://waste.allbarunclean.com"
+BASE_URL = "https://www.waste.allbarunclean.com"
 PHONE = "010-4393-2414"
 PHONE_LINK = "01043932414"
 BRAND = "올바른 폐기물처리"

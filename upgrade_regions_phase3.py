@@ -176,7 +176,7 @@ def footer_html(name, slug):
       <a href="https://www.allbarunclean.com/" target="_blank" rel="noopener">올바른수거 · allbarunclean.com</a>
       <a href="https://yupum.allbarunclean.com/" target="_blank" rel="noopener">올바른 유품정리 · yupum.allbarunclean.com</a>
       <a href="/reviews/">작업후기 모음</a>
-{review_line}      <p class="footer-domain">폐기물처리 : waste.allbarunclean.com</p>
+{review_line}      <p class="footer-domain">폐기물처리 : www.waste.allbarunclean.com</p>
     </div>
   </div>
   <p class="footer-copy">© {BRAND} All Rights Reserved.</p>

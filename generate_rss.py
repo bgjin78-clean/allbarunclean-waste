@@ -1,7 +1,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 
-BASE_URL = "https://waste.allbarunclean.com"
+BASE_URL = "https://www.waste.allbarunclean.com"
 SITE_TITLE = "올바른 폐기물처리"
 SITE_DESC = "서울·경기 폐기물처리, 쓰레기집청소, 빈집정리, 가정·이사·폐업폐기물처리 전문 사이트"
 

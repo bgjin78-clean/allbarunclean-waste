@@ -1,7 +1,7 @@
 import os
 
 PHONE = "010-4393-2414"
-DOMAIN = "https://waste.allbarunclean.com"
+DOMAIN = "https://www.waste.allbarunclean.com"
 
 SEOUL = [
     ("서울", "index"),
