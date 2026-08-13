@@ -1,0 +1,1168 @@
+# -*- coding: utf-8 -*-
+"""이사폐기물처리·생활폐기물처리 미작성 지역 후기 추가."""
+from __future__ import annotations
+
+import json
+import re
+from datetime import date
+from pathlib import Path
+
+BASE_URL = "https://www.waste.allbarunclean.com"
+PHONE = "010-4393-2414"
+PHONE_LINK = "01043932414"
+BRAND = "올바른 폐기물처리"
+TODAY = date.today().isoformat()
+
+MARKER_START = "<!-- keyword-reviews:start -->"
+MARKER_END = "<!-- keyword-reviews:end -->"
+
+REGIONS = [
+    {
+        "slug": "seocho",
+        "sido": "서울",
+        "name": "서초구",
+        "short": "서초구",
+        "page": "/seoul/seocho.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "서초구 오피스텔 빈집정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "서초동",
+            "title": "서초구 아파트 이사폐기물처리 작업후기",
+            "summary": "서초구 서초동 아파트에서 이사 당일 남은 가구·가전·생활폐기물을 분류해 반출한 이사폐기물처리 현장입니다.",
+            "desc": "서초구 서초동 아파트 이사폐기물처리 작업후기. 이사 일정에 맞춰 가구·가전·잔짐을 분류·운반·상차까지 진행했습니다.",
+            "floor": "12층, 엘리베이터 사용",
+            "duration": "약 3시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["침대·매트리스", "장롱·옷장", "냉장고·세탁기", "이사 후 잔짐 박스", "생활폐기물 봉투"],
+            "before": [11, 42],
+            "after": [18, 61],
+            "lead": "서초구 이사폐기물처리는 이사 날짜가 정해진 뒤 버릴 가구와 생활폐기물만 따로 정리하는 작업입니다. 올바른 폐기물처리는 서초동 아파트 현장에서 엘리베이터 사용 시간과 차량 대기 위치를 먼저 확인한 뒤 반출 순서를 안내했습니다.",
+            "story": [
+                "입주 청소와 이사 차량이 겹치지 않도록 오전 작업으로 일정을 맞췄습니다. 버릴 물건과 가져갈 물건을 현관 기준으로 구분해 두면 작업 시간이 줄어듭니다.",
+                "대형가구는 해체 후 엘리베이터로 내리고, 생활폐기물과 잔짐은 한꺼번에 포장해 상차했습니다. 작업 후 세대 안과 복도 상태를 함께 확인했습니다.",
+            ],
+            "faqs": [
+                ("서초구 이사폐기물처리 비용은 얼마인가요?", "일반폐기물 기준 30만원부터이며, 서초구는 층수·엘리베이터·폐기물 양에 따라 달라집니다. 이번 아파트는 사진 상담 후 현장에서 최종 확인했습니다."),
+                ("서초구 아파트 이사폐기물은 당일 처리가 되나요?", "차량·인원 일정에 따라 당일·익일이 가능합니다. 이사 날짜, 주소, 버릴 물건 사진을 남겨주시면 가능 여부를 바로 안내합니다."),
+                ("서초구에서 이사폐기물과 생활폐기물을 같이 처리할 수 있나요?", "가능합니다. 가구·가전과 봉투형 생활폐기물을 한 현장에서 함께 분류·반출하는 경우가 많습니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "빌라",
+            "dong": "반포동",
+            "title": "서초구 빌라 생활폐기물처리 작업후기",
+            "summary": "서초구 반포동 빌라에 쌓인 생활폐기물과 대형폐기물을 동선에 맞춰 정리한 생활폐기물처리 현장입니다.",
+            "desc": "서초구 반포동 빌라 생활폐기물처리 작업후기. 방치된 생활폐기물과 대형가구를 분류·운반·상차했습니다.",
+            "floor": "3층, 계단 반출",
+            "duration": "약 4시간",
+            "vehicle": "1.4톤 트럭 1대",
+            "items": ["옷·이불·잡동사니", "작은 가전", "플라스틱·박스류", "깨진 생활용품", "대형 수납장"],
+            "before": [23, 67],
+            "after": [27, 74],
+            "lead": "서초구 생활폐기물처리는 가정에서 나온 쓰레기와 더 이상 쓰지 않는 가구·가전을 한 번에 정리하는 작업입니다. 반포동 빌라는 엘리베이터가 없어 계단 반출 동선과 작업 인원을 먼저 맞췄습니다.",
+            "story": [
+                "방과 베란다에 쌓인 생활폐기물을 종류별로 나눠 포장한 뒤, 부피가 큰 수납장부터 내려 차량에 실었습니다.",
+                "단독 계단 반출이라 이웃 통행을 방해하지 않도록 구간을 나눠 옮겼고, 작업 후 현관과 계단을 쓸어 마무리했습니다.",
+            ],
+            "faqs": [
+                ("서초구 생활폐기물처리와 대형폐기물 배출의 차이는 무엇인가요?", "지자체 대형폐기물은 스티커 부착 후 지정일에 내놓는 방식입니다. 양이 많거나 계단·주차 조건이 어려운 현장은 전문 생활폐기물처리로 한 번에 반출하는 편이 빠릅니다."),
+                ("서초구 빌라 생활폐기물처리도 가능한가요?", "가능합니다. 엘리베이터 없는 저층 빌라도 계단 반출 인원과 차량을 맞춰 진행합니다."),
+                ("서초구 생활폐기물처리 상담은 어떻게 하나요?", "현장 사진과 주소, 층수, 엘리베이터 여부를 보내주시면 됩니다. 전화 010-4393-2414 또는 상담 접수로 확인합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "songpa",
+        "sido": "서울",
+        "name": "송파구",
+        "short": "송파구",
+        "page": "/seoul/songpa.html",
+        "existing_tag": "쓰레기집청소",
+        "existing_title": "송파구 장기 방치 공간 정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "잠실동",
+            "title": "송파구 아파트 이사폐기물처리 작업후기",
+            "summary": "송파구 잠실동 아파트 이사 전, 가져가지 않을 가구와 생활폐기물을 일정에 맞춰 처리한 현장입니다.",
+            "desc": "송파구 잠실동 아파트 이사폐기물처리 작업후기. 이사 전 불필요한 가구·가전·잔짐을 분류해 반출했습니다.",
+            "floor": "8층, 엘리베이터 사용",
+            "duration": "약 2시간 30분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["소파", "식탁·의자", "김치냉장고", "이삿짐 잔여 박스", "주방 생활폐기물"],
+            "before": [8, 55],
+            "after": [12, 48],
+            "lead": "송파구 이사폐기물처리는 이사 전후로 남는 가구와 생활폐기물을 새집 또는 기존집에서 한 번에 비우는 작업입니다. 잠실동 아파트는 단지 내 주차와 엘리베이터 사용 규칙을 확인한 뒤 작업을 시작했습니다.",
+            "story": [
+                "가져갈 짐은 이미 포장된 상태였고, 버릴 소파·식탁·가전만 세대 안쪽에 모아 두었습니다. 반출 순서를 정한 뒤 엘리베이터로 내렸습니다.",
+                "단지 출입 동선이 길어 차량을 하역 위치에 먼저 대기시키고, 상차 후 세대와 복도를 정리했습니다.",
+            ],
+            "faqs": [
+                ("송파구 이사폐기물처리는 이사 며칠 전에 예약하나요?", "이사 3~7일 전 사진 상담을 권합니다. 주말·월초 이사는 일정이 빨리 차는 편이라 잠실·문정 아파트는 미리 남겨 주시면 좋습니다."),
+                ("송파구 아파트 단지에서도 작업이 되나요?", "됩니다. 관리사무소 출입·주차 규칙을 확인하고 엘리베이터 보양 여부에 맞춰 진행합니다."),
+                ("송파구 이사폐기물처리 업체를 고를 때 무엇을 보나요?", "사진 상담, 반출·상차 포함 여부, 단지 동선 설명, 일정 조율 가능 여부를 확인하세요. 올바른 폐기물처리는 송파구 현장을 30만원부터 상담합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "오피스텔",
+            "dong": "문정동",
+            "title": "송파구 오피스텔 생활폐기물처리 작업후기",
+            "summary": "송파구 문정동 오피스텔에 쌓인 생활폐기물과 소형 가구를 좁은 동선에 맞춰 처리한 현장입니다.",
+            "desc": "송파구 문정동 오피스텔 생활폐기물처리 작업후기. 좁은 복도와 주차장 조건에 맞춰 분류·반출했습니다.",
+            "floor": "15층, 엘리베이터 사용",
+            "duration": "약 2시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["옷·잡화", "소형 가전", "책상·의자", "택배 박스·비닐", "음식물 외 생활폐기물"],
+            "before": [31, 79],
+            "after": [33, 82],
+            "lead": "송파구 생활폐기물처리는 원룸·오피스텔처럼 공간이 좁아도 양이 한꺼번에 나온 경우에 필요합니다. 문정동 오피스텔은 지하 주차장 층고와 하역 가능 여부를 먼저 확인했습니다.",
+            "story": [
+                "작은 공간이라도 생활폐기물이 쌓이면 이동이 어려워집니다. 먼저 통로를 확보한 뒤 박스와 잡화를 포장하고, 책상·의자를 분해해 내렸습니다.",
+                "엘리베이터 혼잡을 피하기 위해 작업 시간을 조정했고, 상차 후 세대 내 잔여물을 확인했습니다.",
+            ],
+            "faqs": [
+                ("송파구 오피스텔 생활폐기물처리도 가능한가요?", "가능합니다. 복도가 좁고 주차 제한이 있는 오피스텔도 차량 크기와 작업 시간을 맞춰 진행합니다."),
+                ("송파구 생활폐기물처리 비용은 어떻게 산정하나요?", "폐기물 양, 층수, 엘리베이터, 주차·하역 조건으로 산정합니다. 일반폐기물 30만원부터이며 사진으로 먼저 안내합니다."),
+                ("음식물 쓰레기도 생활폐기물처리에 포함되나요?", "소량 잔여물은 현장 확인 후 함께 정리할 수 있습니다. 대량 음식물·침출수가 있는 현장은 별도 안내가 필요합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "mapo",
+        "sido": "서울",
+        "name": "마포구",
+        "short": "마포구",
+        "page": "/seoul/mapo.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "마포구 오피스텔 빈집정리 작업후기",
+        "isa": {
+            "place": "빌라",
+            "dong": "망원동",
+            "title": "마포구 빌라 이사폐기물처리 작업후기",
+            "summary": "마포구 망원동 빌라 이사 후 남은 가구와 생활폐기물을 골목 주차 조건에 맞춰 반출한 현장입니다.",
+            "desc": "마포구 망원동 빌라 이사폐기물처리 작업후기. 골목 주차와 계단 반출 조건에 맞춰 잔짐을 정리했습니다.",
+            "floor": "2층, 계단 반출",
+            "duration": "약 3시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["장롱", "침대 프레임", "선풍기·히터 등 계절가전", "이사 잔짐", "생활폐기물"],
+            "before": [14, 38],
+            "after": [21, 53],
+            "lead": "마포구 이사폐기물처리는 골목이 좁은 빌라·다세대에서 차량 진입이 핵심입니다. 망원동 현장은 주차 가능한 시간대를 미리 잡고, 장롱과 침대를 해체해 계단으로 내렸습니다.",
+            "story": [
+                "이삿짐 차량이 떠난 뒤 남은 폐기물만 정리하는 일정이었습니다. 버릴 가구를 방 한쪽에 모아 두면 반출이 빨라집니다.",
+                "골목 대기 시간이 길지 않도록 해체와 운반을 동시에 진행했고, 작업 후 현관 앞을 정리했습니다.",
+            ],
+            "faqs": [
+                ("마포구 이사폐기물처리는 골목 주차 때문에 어렵나요?", "망원·합정·연남 일대는 골목이 좁은 편입니다. 차량 크기와 작업 시간을 미리 맞추면 빌라 이사폐기물처리도 가능합니다."),
+                ("마포구 이사 당일에도 폐기물처리가 되나요?", "일정만 맞으면 당일 작업이 가능합니다. 이삿짐 차량과 시간이 겹치지 않게 조율하는 것이 중요합니다."),
+                ("마포구 이사폐기물처리 견적은 사진으로 되나요?", "됩니다. 방별 사진, 층수, 골목·주차 여부를 보내주시면 대략 비용을 안내한 뒤 현장에서 확정합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "아파트",
+            "dong": "성산동",
+            "title": "마포구 아파트 생활폐기물처리 작업후기",
+            "summary": "마포구 성산동 아파트에 쌓인 생활폐기물과 쓰지 않는 가구를 세대 안에서 분류해 처리한 현장입니다.",
+            "desc": "마포구 성산동 아파트 생활폐기물처리 작업후기. 베란다·방에 쌓인 생활폐기물을 분류·반출했습니다.",
+            "floor": "7층, 엘리베이터 사용",
+            "duration": "약 3시간 30분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["베란다 적재물", "옷·이불", "소형 가구", "어린이용품", "생활폐기물 봉투"],
+            "before": [44, 88],
+            "after": [39, 70],
+            "lead": "마포구 생활폐기물처리는 베란다나 방에 오래 쌓아 둔 물건을 한꺼번에 비울 때 필요합니다. 성산동 아파트는 관리실 엘리베이터 사용 시간을 확인한 뒤 분류부터 시작했습니다.",
+            "story": [
+                "쓸 물건과 버릴 물건을 집주인이 미리 표시해 두어 오분류가 적었습니다. 생활폐기물은 포장, 가구는 분해 후 반출했습니다.",
+                "작업이 끝난 뒤 베란다와 방 바닥이 드러나 다음 정리·청소를 바로 할 수 있는 상태가 되었습니다.",
+            ],
+            "faqs": [
+                ("마포구 생활폐기물처리는 어떤 때 필요한가요?", "이사 전 짐 정리, 리모델링, 쌓아 둔 베란다 물건, 혼자 버리기 어려운 양일 때 필요합니다."),
+                ("마포구 아파트 생활폐기물처리 시간은 얼마나 걸리나요?", "양과 동선에 따라 2~5시간 정도입니다. 이번 성산동 아파트는 약 3시간 30분 소요됐습니다."),
+                ("마포구 생활폐기물과 쓰레기집청소의 차이는 무엇인가요?", "생활폐기물처리는 가정에서 나온 폐기물 반출이 중심입니다. 쓰레기집청소는 장기간 방치·악취·위생 문제가 있는 현장까지 포함합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "jongno",
+        "sido": "서울",
+        "name": "종로구",
+        "short": "종로구",
+        "page": "/seoul/jongno.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "종로구 오래 비운 주택 정리 작업후기",
+        "isa": {
+            "place": "다세대주택",
+            "dong": "혜화동",
+            "title": "종로구 다세대 이사폐기물처리 작업후기",
+            "summary": "종로구 혜화동 다세대주택 이사 전, 좁은 골목과 계단 조건에 맞춰 가구와 생활폐기물을 반출한 현장입니다.",
+            "desc": "종로구 혜화동 다세대 이사폐기물처리 작업후기. 골목 진입과 계단 반출을 고려해 가구·잔짐을 정리했습니다.",
+            "floor": "4층, 계단 반출",
+            "duration": "약 4시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["책장", "책상", "침대", "이삿짐 잔여물", "생활폐기물"],
+            "before": [6, 29],
+            "after": [9, 36],
+            "lead": "종로구 이사폐기물처리는 오래된 골목 다세대에서 차량이 가까이 대기하기 어려운 경우가 많습니다. 혜화동 현장은 트럭을 진입 가능한 지점에 두고, 가구를 해체해 계단으로 옮겼습니다.",
+            "story": [
+                "학생·직장 이사로 책장과 책상 비중이 컸습니다. 무거운 가구는 분해 후 2인 1조로 내려 안전 거리를 유지했습니다.",
+                "골목 통행을 막지 않도록 상차를 짧게 끊었고, 작업 후 현관과 계단을 정리했습니다.",
+            ],
+            "faqs": [
+                ("종로구 이사폐기물처리는 오래된 주택도 가능한가요?", "가능합니다. 혜화·창신·숭인 일대 다세대·단독은 골목·계단 조건을 보고 인원과 차량을 맞춥니다."),
+                ("종로구 이사폐기물처리 비용이 더 나오나요?", "계단 반출·골목 운반이 길면 인원·시간이 늘어 비용이 달라질 수 있습니다. 사진과 층수를 알려주시면 안내합니다."),
+                ("종로구에서 원룸 이사폐기물처리도 하나요?", "합니다. 원룸·고시원·다세대 모두 버릴 짐의 양만 확인되면 상담이 가능합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "단독주택",
+            "dong": "사직동",
+            "title": "종로구 단독주택 생활폐기물처리 작업후기",
+            "summary": "종로구 사직동 단독주택에 쌓인 생활폐기물과 창고 적재물을 마당 동선에 맞춰 처리한 현장입니다.",
+            "desc": "종로구 사직동 단독주택 생활폐기물처리 작업후기. 방·창고에 쌓인 생활폐기물을 분류해 반출했습니다.",
+            "floor": "지상 1층, 마당 하역",
+            "duration": "약 5시간",
+            "vehicle": "1.4톤 트럭 1대",
+            "items": ["창고 잡동사니", "오래된 가구", "생활용품", "정원·베란다 폐기물", "박스·비닐류"],
+            "before": [51, 92],
+            "after": [46, 85],
+            "lead": "종로구 생활폐기물처리는 단독주택 창고·다락에 쌓인 물건을 한꺼번에 비울 때 자주 요청됩니다. 사직동 주택은 마당으로 하역할 수 있어 아파트보다 대형 물품 반출이 수월했습니다.",
+            "story": [
+                "방과 창고를 나눠 작업했습니다. 보관할 물건은 한쪽에 두고, 폐기할 생활용품부터 포장·운반했습니다.",
+                "마당 정리 후 트럭에 상차하고, 작업이 끝난 공간은 다음 수리나 입주 준비가 가능하도록 비웠습니다.",
+            ],
+            "faqs": [
+                ("종로구 단독주택 생활폐기물처리도 가능한가요?", "가능합니다. 창고·다락·마당 적재물까지 현장 확인 후 한 번에 처리할 수 있습니다."),
+                ("종로구 생활폐기물처리와 빈집정리는 어떻게 다른가요?", "생활폐기물처리는 거주 중·이사 전 가정 폐기물 반출이 중심입니다. 빈집정리는 오래 비운 집의 가구·잔여물을 통째로 비우는 작업에 가깝습니다."),
+                ("종로구 생활폐기물처리 예약은 어떻게 하나요?", "사진과 주소, 창고·방 개수를 남겨 주세요. 010-4393-2414로 전화하거나 상담 접수를 이용하시면 됩니다."),
+            ],
+        },
+    },
+    {
+        "slug": "dongjak",
+        "sido": "서울",
+        "name": "동작구",
+        "short": "동작구",
+        "page": "/seoul/dongjak.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "동작구 오피스텔 빈집정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "사당동",
+            "title": "동작구 아파트 이사폐기물처리 작업후기",
+            "summary": "동작구 사당동 아파트에서 이사 전 버릴 가구와 생활폐기물을 엘리베이터 동선에 맞춰 처리한 현장입니다.",
+            "desc": "동작구 사당동 아파트 이사폐기물처리 작업후기. 이사 전 가구·가전·잔짐을 분류·반출했습니다.",
+            "floor": "10층, 엘리베이터 사용",
+            "duration": "약 3시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["침대", "옷장", "세탁기", "이삿짐 잔여 박스", "생활폐기물"],
+            "before": [17, 63],
+            "after": [24, 58],
+            "lead": "동작구 이사폐기물처리는 사당·노량진처럼 이사 수요가 많은 지역에서 일정 맞추기가 중요합니다. 사당동 아파트는 이사 전날 작업을 잡아 이삿짐 차량과 겹치지 않게 했습니다.",
+            "story": [
+                "버릴 옷장과 침대는 미리 비워 두었습니다. 해체 후 엘리베이터로 내리고, 잔짐과 생활폐기물은 마지막에 상차했습니다.",
+                "단지 내 하역 위치가 정해져 있어 관리실 안내에 따라 차량을 대기시켰습니다.",
+            ],
+            "faqs": [
+                ("동작구 이사폐기물처리는 이사 전날이 가능한가요?", "가능합니다. 사당동처럼 이사 차량이 몰리는 단지는 전날 작업을 권하는 경우가 많습니다."),
+                ("동작구 아파트 이사폐기물처리 비용은 얼마인가요?", "일반폐기물 30만원부터이며 양·층수·엘리베이터에 따라 달라집니다. 사진 상담으로 먼저 안내합니다."),
+                ("동작구에서 원룸 이사폐기물처리도 하나요?", "합니다. 원룸·오피스텔·아파트 모두 버릴 짐만 확인되면 작업이 가능합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "빌라",
+            "dong": "노량진동",
+            "title": "동작구 빌라 생활폐기물처리 작업후기",
+            "summary": "동작구 노량진동 빌라에 쌓인 생활폐기물과 소형 가구를 계단 반출로 정리한 현장입니다.",
+            "desc": "동작구 노량진동 빌라 생활폐기물처리 작업후기. 계단 반출 조건에 맞춰 생활폐기물과 소형 가구를 처리했습니다.",
+            "floor": "4층, 계단 반출",
+            "duration": "약 3시간 30분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["옷·잡동사니", "작은 가전", "수납박스", "의자·협탁", "생활폐기물 봉투"],
+            "before": [35, 71],
+            "after": [41, 77],
+            "lead": "동작구 생활폐기물처리는 빌라 계단 반출이 많은 편입니다. 노량진동 현장은 4층까지 엘리베이터가 없어 포장 단위를 작게 나눠 운반했습니다.",
+            "story": [
+                "이동 통로를 먼저 만들고 생활폐기물을 봉투·박스로 나눈 뒤, 가구는 분해해서 내렸습니다.",
+                "골목 주차 시간이 짧아 상차를 빠르게 진행했고, 작업 후 계단을 쓸어 마무리했습니다.",
+            ],
+            "faqs": [
+                ("동작구 생활폐기물처리는 엘리베이터 없어도 되나요?", "됩니다. 계단 반출 인원을 늘려 노량진·상도 일대 빌라도 진행합니다."),
+                ("동작구 생활폐기물처리와 가정폐기물처리는 같은가요?", "같은 범위로 보시면 됩니다. 가정에서 나온 가구·가전·생활쓰레기를 분류해 반출하는 작업입니다."),
+                ("동작구 생활폐기물처리 상담 시 어떤 사진이 필요한가요?", "방 전체, 베란다, 버릴 가구 사진과 건물 입구·계단 사진을 함께 보내주시면 견적이 정확해집니다."),
+            ],
+        },
+    },
+    {
+        "slug": "seongnam",
+        "sido": "경기",
+        "name": "성남시",
+        "short": "성남",
+        "page": "/gyeonggi/seongnam.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "성남시 오래 비운 주택 정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "정자동",
+            "title": "성남시 분당 아파트 이사폐기물처리 작업후기",
+            "summary": "경기 성남시 분당구 정자동 아파트에서 이사 당일 남은 가구와 생활폐기물을 처리한 현장입니다.",
+            "desc": "성남시 분당구 정자동 아파트 이사폐기물처리 작업후기. 이사 일정에 맞춰 가구·가전·잔짐을 반출했습니다.",
+            "floor": "15층, 엘리베이터 사용",
+            "duration": "약 2시간 40분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["소파", "드레스룸 잔여 가구", "가전 박스", "이사 후 잔짐", "생활폐기물"],
+            "before": [3, 47],
+            "after": [7, 52],
+            "lead": "성남시 이사폐기물처리는 분당·판교 아파트처럼 단지 출입과 하역 규칙이 있는 현장에서 자주 이뤄집니다. 정자동 아파트는 관리사무소 주차 안내를 받은 뒤 엘리베이터로 반출했습니다.",
+            "story": [
+                "새집 입주 청소 전에 기존집 잔짐을 먼저 비우는 일정이었습니다. 버릴 소파와 가전을 거실에 모아 두어 동선이 짧았습니다.",
+                "단지 내 이동 거리가 있어 하역 지점을 먼저 확보하고, 상차 후 세대를 확인했습니다.",
+            ],
+            "faqs": [
+                ("성남시 이사폐기물처리, 분당·판교도 가능한가요?", "가능합니다. 분당구 정자·서현, 수정구, 중원구, 판교 일대 아파트·오피스텔을 상담합니다."),
+                ("성남 이사폐기물처리 비용은 얼마부터인가요?", "일반폐기물 30만원부터입니다. 단지 하역 거리와 폐기물 양에 따라 달라질 수 있습니다."),
+                ("성남시 이사폐기물처리는 주말에도 되나요?", "주말 일정은 빠르게 차는 편입니다. 이사 날짜를 알려주시면 가능한 시간을 안내합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "단독주택",
+            "dong": "신흥동",
+            "title": "성남시 수정구 생활폐기물처리 작업후기",
+            "summary": "경기 성남시 수정구 신흥동 주택에 쌓인 생활폐기물과 오래된 가구를 마당 동선으로 처리한 현장입니다.",
+            "desc": "성남시 수정구 신흥동 생활폐기물처리 작업후기. 주택 내부와 창고 생활폐기물을 분류·반출했습니다.",
+            "floor": "지상 1~2층, 마당 하역",
+            "duration": "약 5시간",
+            "vehicle": "1.4톤 트럭 1대",
+            "items": ["오래된 장롱", "생활용품", "창고 적재물", "가전", "생활폐기물 봉투"],
+            "before": [59, 96],
+            "after": [64, 91],
+            "lead": "성남시 생활폐기물처리는 수정구·중원구 주택처럼 창고와 방이 많은 현장에서 양이 크게 나옵니다. 신흥동 주택은 마당으로 바로 하역이 가능해 대형 가구부터 내렸습니다.",
+            "story": [
+                "2층과 창고를 나눠 작업했습니다. 보관할 물건은 한 방에 모으고, 폐기할 생활폐기물과 가구를 먼저 반출했습니다.",
+                "작업 후 공간이 비워져 수리·도배 일정을 바로 잡을 수 있는 상태가 되었습니다.",
+            ],
+            "faqs": [
+                ("성남시 생활폐기물처리는 수정구·중원구도 되나요?", "됩니다. 분당뿐 아니라 수정구 신흥·단대, 중원구 상대원 등 주택·빌라 현장도 진행합니다."),
+                ("성남 생활폐기물처리와 대형폐기물 배출 중 무엇을 고르나요?", "물건이 적고 지정일 배출이 가능하면 대형폐기물 스티커로도 됩니다. 양이 많거나 운반이 어려우면 생활폐기물처리로 한 번에 반출하는 편이 낫습니다."),
+                ("성남시 생활폐기물처리 시간은 얼마나 걸리나요?", "주택·창고가 있으면 4~6시간, 아파트 소량은 2~3시간 정도입니다."),
+            ],
+        },
+    },
+    {
+        "slug": "goyang",
+        "sido": "경기",
+        "name": "고양시",
+        "short": "고양",
+        "page": "/gyeonggi/goyang.html",
+        "existing_tag": "쓰레기집청소",
+        "existing_title": "고양시 장기 방치 공간 정리 작업후기",
+        "isa": {
+            "place": "오피스텔",
+            "dong": "장항동",
+            "title": "고양시 일산 오피스텔 이사폐기물처리 작업후기",
+            "summary": "경기 고양시 일산동구 장항동 오피스텔 이사 후 남은 가구와 생활폐기물을 처리한 현장입니다.",
+            "desc": "고양시 일산동구 장항동 오피스텔 이사폐기물처리 작업후기. 좁은 동선에 맞춰 잔짐과 가구를 반출했습니다.",
+            "floor": "18층, 엘리베이터 사용",
+            "duration": "약 2시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["침대", "옷장", "책상", "이삿짐 잔여물", "생활폐기물"],
+            "before": [19, 73],
+            "after": [26, 68],
+            "lead": "고양시 이사폐기물처리는 일산 오피스텔처럼 하역장이 지하에 있는 건물에서 차량 대기 위치를 먼저 봐야 합니다. 장항동 현장은 지하 하역과 엘리베이터 사용 시간을 맞춘 뒤 작업을 시작했습니다.",
+            "story": [
+                "원룸형 오피스텔이라 버릴 짐은 많지 않았지만 침대와 옷장 부피가 컸습니다. 분해 후 엘리베이터로 내렸습니다.",
+                "이사 직후 잔짐을 바로 비워 다음 입주 청소가 수월해졌습니다.",
+            ],
+            "faqs": [
+                ("고양시 이사폐기물처리, 일산·덕양 모두 가능한가요?", "가능합니다. 일산동구·일산서구·덕양구 아파트·오피스텔·빌라를 상담합니다."),
+                ("고양 오피스텔 이사폐기물처리는 당일 가능한가요?", "하역장·엘리베이터 조건과 차량 일정만 맞으면 당일 작업이 가능합니다."),
+                ("고양시 이사폐기물처리 견적에 상차가 포함되나요?", "분류·운반·상차까지 현장 작업에 포함해 안내합니다. 사진으로 먼저 범위를 확인합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "아파트",
+            "dong": "화정동",
+            "title": "고양시 덕양구 아파트 생활폐기물처리 작업후기",
+            "summary": "경기 고양시 덕양구 화정동 아파트에 쌓인 생활폐기물과 쓰지 않는 가구를 처리한 현장입니다.",
+            "desc": "고양시 덕양구 화정동 아파트 생활폐기물처리 작업후기. 베란다와 방에 쌓인 생활폐기물을 분류·반출했습니다.",
+            "floor": "6층, 엘리베이터 사용",
+            "duration": "약 3시간 20분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["베란다 적재물", "장난감·잡화", "소형 가구", "가전", "생활폐기물"],
+            "before": [40, 84],
+            "after": [45, 89],
+            "lead": "고양시 생활폐기물처리는 화정·행신 아파트처럼 베란다에 물건을 쌓아 둔 세대에서 많이 요청됩니다. 이번 현장은 버릴 물건만 표시된 상태여서 분류 시간이 짧았습니다.",
+            "story": [
+                "베란다 적재물부터 내려 세대 안 이동 공간을 확보했습니다. 이후 방의 잡화와 소형 가구를 반출했습니다.",
+                "단지 하역 위치를 지켜 차량을 대기시켰고, 작업 후 베란다와 방을 함께 확인했습니다.",
+            ],
+            "faqs": [
+                ("고양시 생활폐기물처리는 덕양구도 되나요?", "됩니다. 화정·행신·원당 등 덕양구와 일산 전 지역을 진행합니다."),
+                ("고양 생활폐기물처리 비용은 어떻게 나오나요?", "양과 동선 기준이며 일반폐기물 30만원부터입니다. 베란다 적재가 많으면 작업 시간이 늘어날 수 있습니다."),
+                ("고양시에서 생활폐기물과 이사폐기물을 하루에 같이 할 수 있나요?", "같은 세대에서 함께 처리하는 경우가 많습니다. 버릴 짐 사진을 보내주시면 한 일정으로 안내합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "yongin",
+        "sido": "경기",
+        "name": "용인시",
+        "short": "용인",
+        "page": "/gyeonggi/yongin.html",
+        "existing_tag": "폐업폐기물",
+        "existing_title": "용인시 사무실·매장 집기 정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "죽전동",
+            "title": "용인시 수지구 아파트 이사폐기물처리 작업후기",
+            "summary": "경기 용인시 수지구 죽전동 아파트 이사 전, 가져가지 않을 가구와 생활폐기물을 처리한 현장입니다.",
+            "desc": "용인시 수지구 죽전동 아파트 이사폐기물처리 작업후기. 이사 전 가구·가전·잔짐을 분류해 반출했습니다.",
+            "floor": "9층, 엘리베이터 사용",
+            "duration": "약 3시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["침대·매트리스", "식탁", "냉장고", "이삿짐 잔여 박스", "생활폐기물"],
+            "before": [13, 56],
+            "after": [16, 62],
+            "lead": "용인시 이사폐기물처리는 수지·기흥 대단지 아파트에서 하역 동선이 긴 편입니다. 죽전동 현장은 단지 내 이동을 고려해 작업 인원과 차량 대기 위치를 먼저 정했습니다.",
+            "story": [
+                "이사 전날 버릴 가구만 정리하는 일정이었습니다. 냉장고와 식탁을 먼저 내리고, 잔짐은 마지막에 상차했습니다.",
+                "관리실 안내에 따라 엘리베이터 사용 시간을 지켰고, 세대와 복도를 마무리했습니다.",
+            ],
+            "faqs": [
+                ("용인시 이사폐기물처리, 수지·기흥·처인 모두 되나요?", "가능합니다. 죽전·동천·보정, 기흥 구갈·구성, 처인 김량장 등 용인 전 지역을 상담합니다."),
+                ("용인 아파트 이사폐기물처리는 얼마나 걸리나요?", "보통 2~4시간입니다. 단지 하역 거리와 가구 수에 따라 달라집니다."),
+                ("용인시 이사폐기물처리 예약은 언제 하는 게 좋나요?", "이사 1주일 전 사진 상담을 권합니다. 주말 이사는 일정이 빨리 찹니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "빌라",
+            "dong": "구갈동",
+            "title": "용인시 기흥구 빌라 생활폐기물처리 작업후기",
+            "summary": "경기 용인시 기흥구 구갈동 빌라에 쌓인 생활폐기물과 가구를 계단 반출로 정리한 현장입니다.",
+            "desc": "용인시 기흥구 구갈동 빌라 생활폐기물처리 작업후기. 계단 반출에 맞춰 생활폐기물과 가구를 처리했습니다.",
+            "floor": "3층, 계단 반출",
+            "duration": "약 4시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["옷·이불", "수납장", "소형 가전", "잡동사니", "생활폐기물 봉투"],
+            "before": [28, 81],
+            "after": [32, 86],
+            "lead": "용인시 생활폐기물처리는 기흥구 빌라처럼 주차와 계단 조건이 현장마다 다릅니다. 구갈동 빌라는 단지 앞 하역이 가능해 3층 계단 반출로 진행했습니다.",
+            "story": [
+                "방 두 곳에 쌓인 생활폐기물을 먼저 포장하고, 수납장은 분해해 내렸습니다.",
+                "작업 후 방이 비워져 도배·입주 준비를 바로 할 수 있는 상태가 되었습니다.",
+            ],
+            "faqs": [
+                ("용인시 생활폐기물처리는 기흥·수지 빌라도 되나요?", "됩니다. 엘리베이터 없는 빌라도 계단 반출 인원을 맞춰 진행합니다."),
+                ("용인 생활폐기물처리 비용은 얼마인가요?", "일반폐기물 30만원부터이며 양·층수·주차 조건에 따라 달라집니다."),
+                ("용인시 생활폐기물처리 상담에 필요한 정보는 무엇인가요?", "주소, 층수, 엘리베이터 여부, 방별 사진입니다. 전화 010-4393-2414로 보내주셔도 됩니다."),
+            ],
+        },
+    },
+    {
+        "slug": "bucheon",
+        "sido": "경기",
+        "name": "부천시",
+        "short": "부천",
+        "page": "/gyeonggi/bucheon.html",
+        "existing_tag": "폐업폐기물",
+        "existing_title": "부천시 상가 폐업폐기물처리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "중동",
+            "title": "부천시 중동 아파트 이사폐기물처리 작업후기",
+            "summary": "경기 부천시 중동 아파트에서 이사 후 남은 가구와 생활폐기물을 단지 하역 규칙에 맞춰 처리한 현장입니다.",
+            "desc": "부천시 중동 아파트 이사폐기물처리 작업후기. 이사 후 잔짐·가구·생활폐기물을 분류해 반출했습니다.",
+            "floor": "11층, 엘리베이터 사용",
+            "duration": "약 2시간 50분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["소파", "장롱", "세탁기", "이사 잔짐", "생활폐기물"],
+            "before": [4, 49],
+            "after": [10, 54],
+            "lead": "부천시 이사폐기물처리는 중동·상동 대단지에서 하역 위치가 정해져 있는 경우가 많습니다. 이번 아파트는 관리실 안내에 따라 차량을 대기시키고 엘리베이터로 반출했습니다.",
+            "story": [
+                "이삿짐이 나간 뒤 남은 소파와 장롱만 정리하는 일정이었습니다. 해체 후 내려 상차 시간을 줄였습니다.",
+                "작업 후 세대가 비워져 복비·퇴실 정리가 바로 가능했습니다.",
+            ],
+            "faqs": [
+                ("부천시 이사폐기물처리, 중동·상동·원미 모두 되나요?", "가능합니다. 부천 전 지역 아파트·빌라·오피스텔을 상담합니다."),
+                ("부천 이사폐기물처리는 퇴실 당일에도 가능한가요?", "일정만 맞으면 당일 가능합니다. 열쇠 반납 시간을 알려주시면 그에 맞춰 안내합니다."),
+                ("부천시 이사폐기물처리 비용은 얼마부터인가요?", "일반폐기물 30만원부터입니다. 사진과 층수를 알려주시면 대략 비용을 안내합니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "오피스텔",
+            "dong": "상동",
+            "title": "부천시 상동 오피스텔 생활폐기물처리 작업후기",
+            "summary": "경기 부천시 상동 오피스텔에 쌓인 생활폐기물과 소형 가구를 좁은 하역 동선에 맞춰 처리한 현장입니다.",
+            "desc": "부천시 상동 오피스텔 생활폐기물처리 작업후기. 좁은 주차장 조건에 맞춰 생활폐기물을 반출했습니다.",
+            "floor": "14층, 엘리베이터 사용",
+            "duration": "약 2시간 20분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["옷·잡화", "책상·의자", "소형 가전", "박스류", "생활폐기물"],
+            "before": [37, 76],
+            "after": [43, 80],
+            "lead": "부천시 생활폐기물처리는 상동 오피스텔처럼 주차장이 좁은 건물에서 차량 크기를 맞추는 것이 중요합니다. 1톤 트럭으로 하역 가능한 위치를 확인한 뒤 작업을 시작했습니다.",
+            "story": [
+                "원룸에 쌓인 옷과 잡화를 먼저 포장하고, 책상은 분해해 엘리베이터로 내렸습니다.",
+                "하역 시간이 짧아 상차를 빠르게 진행했고, 세대 안 잔여물을 확인했습니다.",
+            ],
+            "faqs": [
+                ("부천시 오피스텔 생활폐기물처리도 가능한가요?", "가능합니다. 주차장 층고와 하역 위치를 보고 차량을 맞춥니다."),
+                ("부천 생활폐기물처리와 폐업폐기물처리는 다른가요?", "생활폐기물처리는 가정·거주 공간 폐기물입니다. 폐업폐기물은 사무실·매장 집기 정리에 해당합니다."),
+                ("부천시 생활폐기물처리 상담은 어떻게 하나요?", "사진과 주소를 남겨 주세요. 010-4393-2414 또는 사이트 상담 접수로 확인합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "ansan",
+        "sido": "경기",
+        "name": "안산시",
+        "short": "안산",
+        "page": "/gyeonggi/ansan.html",
+        "existing_tag": "빈집정리",
+        "existing_title": "안산시 오래 비운 주택 정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "고잔동",
+            "title": "안산시 단원구 아파트 이사폐기물처리 작업후기",
+            "summary": "경기 안산시 단원구 고잔동 아파트에서 이사 전 버릴 가구와 생활폐기물을 처리한 현장입니다.",
+            "desc": "안산시 단원구 고잔동 아파트 이사폐기물처리 작업후기. 이사 전 가구·가전·잔짐을 분류·반출했습니다.",
+            "floor": "8층, 엘리베이터 사용",
+            "duration": "약 3시간 10분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["침대", "옷장", "냉장고", "이삿짐 잔여 박스", "생활폐기물"],
+            "before": [22, 65],
+            "after": [25, 69],
+            "lead": "안산시 이사폐기물처리는 단원구·상록구 아파트 이사 시즌에 일정이 몰립니다. 고잔동 현장은 이사 전날 작업을 잡아 이삿짐과 동선이 겹치지 않게 했습니다.",
+            "story": [
+                "버릴 옷장과 침대를 미리 비워 두어 해체가 빨랐습니다. 엘리베이터로 내린 뒤 단지 하역장에서 상차했습니다.",
+                "작업 후 세대가 비워져 입주 청소와 이사 당일 일정이 수월해졌습니다.",
+            ],
+            "faqs": [
+                ("안산시 이사폐기물처리, 단원구·상록구 모두 되나요?", "가능합니다. 고잔·중앙·본오·사동 등 안산 전 지역을 상담합니다."),
+                ("안산 이사폐기물처리 비용은 얼마인가요?", "일반폐기물 30만원부터이며 양과 층수에 따라 달라집니다. 사진 상담으로 안내합니다."),
+                ("안산시 이사폐기물처리는 주중·주말 모두 되나요?", "됩니다. 주말은 일정이 빨리 차므로 이사 날짜를 먼저 남겨 주세요."),
+            ],
+        },
+        "saenghwal": {
+            "place": "빌라",
+            "dong": "본오동",
+            "title": "안산시 상록구 빌라 생활폐기물처리 작업후기",
+            "summary": "경기 안산시 상록구 본오동 빌라에 쌓인 생활폐기물과 가구를 계단 반출로 정리한 현장입니다.",
+            "desc": "안산시 상록구 본오동 빌라 생활폐기물처리 작업후기. 계단 반출 조건에 맞춰 생활폐기물을 처리했습니다.",
+            "floor": "2층, 계단 반출",
+            "duration": "약 3시간 40분",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["생활용품", "작은 가구", "가전", "옷·잡동사니", "생활폐기물 봉투"],
+            "before": [34, 90],
+            "after": [38, 95],
+            "lead": "안산시 생활폐기물처리는 상록구 빌라처럼 골목 주차가 필요한 현장이 많습니다. 본오동 빌라는 2층이라 계단 반출은 짧았지만, 골목 대기 시간을 맞춰 상차했습니다.",
+            "story": [
+                "방과 베란다의 생활폐기물을 포장한 뒤 작은 가구를 내렸습니다. 쓸 물건은 한쪽에 남겨 오분류를 줄였습니다.",
+                "작업 후 공간이 정리되어 다음 입주나 리모델링 일정을 바로 잡을 수 있었습니다.",
+            ],
+            "faqs": [
+                ("안산시 생활폐기물처리는 상록구 빌라도 되나요?", "됩니다. 골목 주차와 계단 조건을 보고 인원·차량을 맞춥니다."),
+                ("안산 생활폐기물처리와 쓰레기집청소는 언제 다른가요?", "생활폐기물처리는 가정 폐기물 반출이 중심입니다. 장기간 방치·악취가 있으면 쓰레기집청소 범위로 안내합니다."),
+                ("안산시 생활폐기물처리 견적은 사진으로 가능한가요?", "가능합니다. 방·베란다·입구 사진을 보내주시면 대략 비용을 안내한 뒤 현장에서 확정합니다."),
+            ],
+        },
+    },
+]
+
+
+SHARED_CSS = r"""
+    :root {
+      --main:#10b981; --dark:#0f172a; --point:#f59e0b; --bg:#f8fafc;
+      --card:#ffffff; --text:#1e293b; --muted:#64748b; --line:#e2e8f0; --soft:#ecfdf5;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0;
+      font-family:"Pretendard","Noto Sans KR",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.75;
+    }
+    a { color:inherit; text-decoration:none; }
+    header {
+      position:sticky; top:0; z-index:100;
+      background:rgba(255,255,255,0.95);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(10px);
+    }
+    .nav {
+      max-width:1180px; margin:0 auto; padding:16px 20px;
+      display:flex; justify-content:space-between; align-items:center; gap:18px;
+    }
+    .logo { font-size:22px; font-weight:900; color:var(--dark); letter-spacing:-0.8px; }
+    .logo span { color:var(--main); }
+    .nav-links { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; font-weight:700; color:var(--muted); }
+    .call-btn {
+      background:var(--main); color:#fff; padding:10px 18px; border-radius:999px;
+      font-weight:900; white-space:nowrap; font-size:14px;
+    }
+    .hero {
+      padding:84px 20px 72px; color:#fff;
+      background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#10b981 100%);
+    }
+    .hero-inner, .wrap { max-width:1180px; margin:0 auto; }
+    .badge {
+      display:inline-block; padding:8px 15px; border-radius:999px;
+      background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.28);
+      font-size:14px; margin-bottom:18px;
+    }
+    .hero h1 { margin:0 0 16px; font-size:40px; line-height:1.25; letter-spacing:-1.2px; }
+    .hero p { max-width:760px; margin:0; font-size:17px; color:rgba(255,255,255,0.9); }
+    section { padding:72px 20px; }
+    .title { margin-bottom:30px; }
+    .title span { color:var(--main); font-size:14px; font-weight:900; letter-spacing:0.5px; }
+    .title h2 { margin:8px 0 10px; font-size:32px; line-height:1.3; color:var(--dark); letter-spacing:-1px; }
+    .title p { margin:0; color:var(--muted); }
+    .breadcrumb { font-size:14px; color:rgba(255,255,255,0.82); margin-bottom:18px; }
+    .breadcrumb a { text-decoration:underline; }
+    .article-box {
+      background:var(--card); border:1px solid var(--line); border-radius:28px;
+      padding:38px; box-shadow:0 12px 34px rgba(15,23,42,0.06);
+    }
+    .article-box h1 { margin:0 0 14px; color:var(--dark); font-size:34px; line-height:1.3; letter-spacing:-1px; }
+    .article-box .lead { color:var(--muted); font-size:17px; margin:0 0 22px; }
+    .article-box p { color:var(--muted); margin:0 0 16px; }
+    .article-box h2 { color:var(--dark); font-size:22px; margin:28px 0 14px; }
+    .summary-box {
+      background:var(--soft); border:1px solid #d1fae5; border-radius:18px;
+      padding:22px 24px; margin:0 0 28px;
+    }
+    .summary-box strong { color:var(--dark); display:block; margin-bottom:8px; }
+    .fact-grid {
+      display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:0 0 28px;
+    }
+    .fact-item {
+      background:#f8fafc; border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+    }
+    .fact-item span { display:block; color:var(--muted); font-size:13px; font-weight:800; margin-bottom:4px; }
+    .fact-item b { color:var(--dark); font-size:15px; }
+    .item-list, .step-list { margin:0 0 22px; padding-left:20px; color:var(--muted); }
+    .item-list li, .step-list li { margin:0 0 8px; }
+    .photo-block { margin-top:34px; }
+    .photo-block h2 { color:var(--dark); font-size:22px; margin:0 0 16px; }
+    .photo-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:28px; }
+    .photo-grid img {
+      width:100%; height:260px; object-fit:cover; border-radius:18px;
+      display:block; background:#e2e8f0; border:1px solid var(--line);
+    }
+    .faq-list details {
+      background:#f8fafc; border:1px solid var(--line); border-radius:14px;
+      padding:14px 18px; margin-bottom:10px;
+    }
+    .faq-list summary { cursor:pointer; font-weight:800; color:var(--dark); }
+    .faq-list details p { margin:10px 0 0; }
+    .cta-box {
+      margin-top:34px; padding:28px; border-radius:22px;
+      background:var(--soft); border:1px solid #d1fae5;
+    }
+    .cta-box h2 { margin:0 0 10px; color:var(--dark); font-size:24px; }
+    .cta-box p { margin:0 0 16px; color:var(--muted); }
+    .btn-row { display:flex; flex-wrap:wrap; gap:12px; }
+    .btn { display:inline-block; padding:13px 20px; border-radius:12px; font-weight:900; }
+    .btn-primary { background:var(--main); color:#fff; }
+    .btn-outline { background:var(--card); color:var(--dark); border:1px solid var(--line); }
+    .related-section { background:var(--soft); }
+    .related-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+    .related-card {
+      display:block; background:var(--card); border:1px solid #d1fae5; border-radius:22px;
+      padding:30px; box-shadow:0 10px 28px rgba(16,185,129,0.08);
+    }
+    .related-card h3 { margin:0 0 10px; color:var(--dark); font-size:22px; }
+    .related-card p { margin:0 0 16px; color:var(--muted); font-size:15px; }
+    .related-card span { color:var(--main); font-weight:900; font-size:15px; }
+    .review-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .review-card {
+      background:var(--card); border:1px solid var(--line); border-radius:22px;
+      padding:26px; box-shadow:0 10px 28px rgba(15,23,42,0.06);
+      display:flex; flex-direction:column;
+    }
+    .review-tag {
+      display:inline-block; background:var(--soft); color:#047857;
+      padding:5px 12px; border-radius:999px; font-size:13px; font-weight:800;
+      margin-bottom:14px; align-self:flex-start;
+    }
+    .review-card h3 { margin:0 0 10px; color:var(--dark); font-size:19px; line-height:1.4; }
+    .review-card p { margin:0 0 18px; color:var(--muted); font-size:15px; flex:1; }
+    .review-link { color:var(--main); font-weight:900; font-size:15px; }
+    footer { background:#0f172a; color:#cbd5e1; padding:40px 20px; }
+    .footer-inner {
+      max-width:1180px; margin:0 auto; display:flex;
+      justify-content:space-between; gap:24px; flex-wrap:wrap;
+    }
+    .footer-inner strong { color:#fff; font-size:18px; }
+    .footer-links a { display:block; margin-bottom:6px; color:var(--main); font-weight:700; }
+    .floating-call {
+      position:fixed; right:18px; bottom:18px; z-index:120;
+      background:var(--main); color:#fff; padding:14px 18px; border-radius:999px;
+      font-weight:900; box-shadow:0 12px 30px rgba(16,185,129,0.28);
+    }
+    @media (max-width:900px) {
+      .nav-links { display:none; }
+      .hero h1, .article-box h1 { font-size:30px; }
+      .review-grid, .photo-grid, .related-grid, .fact-grid { grid-template-columns:1fr; }
+      section { padding:58px 20px; }
+      .floating-call { left:18px; right:18px; text-align:center; }
+    }
+"""
+
+
+def keyword_meta(kind: str) -> tuple[str, str, str]:
+    if kind == "isa":
+        return "이사폐기물", "이사폐기물처리", "이사 전후 폐기물 정리"
+    return "생활폐기물", "생활폐기물처리", "가정 생활폐기물 정리"
+
+
+def header_html() -> str:
+    return f"""
+<header>
+  <div class="nav">
+    <a href="/" class="logo">올바른 <span>폐기물처리</span></a>
+    <nav class="nav-links">
+      <a href="/#services">서비스</a>
+      <a href="/reviews/">작업후기</a>
+      <a href="/#area">지역안내</a>
+      <a href="/#contact">상담접수</a>
+    </nav>
+    <a href="tel:{PHONE_LINK}" class="call-btn">{PHONE}</a>
+  </div>
+</header>"""
+
+
+def footer_html(region: dict, folder: str) -> str:
+    return f"""
+<footer>
+  <div class="footer-inner">
+    <div>
+      <strong>{BRAND}</strong><br />
+      {region["sido"]} {region["name"]} 폐기물처리 · 쓰레기집청소 · 빈집정리
+    </div>
+    <div class="footer-links">
+      대표 상담 : <a href="tel:{PHONE_LINK}">{PHONE}</a><br />
+      <a href="https://www.allbarunclean.com/" target="_blank" rel="noopener">올바른수거 · allbarunclean.com</a>
+      <a href="https://yupum.allbarunclean.com/" target="_blank" rel="noopener">올바른 유품정리 · yupum.allbarunclean.com</a><br />
+      <a href="/reviews/">작업후기 모음</a>
+      <a href="/reviews/{folder}/">{region["name"]} 작업후기</a>
+      <a href="{region["page"]}">{region["name"]} 폐기물처리 안내</a>
+    </div>
+  </div>
+</footer>
+<a href="tel:{PHONE_LINK}" class="floating-call">전화 상담 {PHONE}</a>"""
+
+
+def schema_json(region: dict, kind: str, data: dict, folder: str, page_url: str) -> str:
+    tag, keyword, _ = keyword_meta(kind)
+    steps = [
+        {"@type": "HowToStep", "name": "사진 상담", "text": f"{region['name']} 현장 사진과 주소, 층수, 엘리베이터 여부를 확인합니다."},
+        {"@type": "HowToStep", "name": "현장 확인", "text": "폐기물 양과 반출 동선, 차량 대기 위치를 확인한 뒤 작업 범위를 안내합니다."},
+        {"@type": "HowToStep", "name": "분류·반출", "text": f"{keyword} 대상 가구·가전·생활폐기물을 분류하고 운반합니다."},
+        {"@type": "HowToStep", "name": "상차·마무리", "text": "차량에 상차한 뒤 세대와 이동 경로를 정리합니다."},
+    ]
+    faq = [
+        {
+            "@type": "Question",
+            "name": q,
+            "acceptedAnswer": {"@type": "Answer", "text": a},
+        }
+        for q, a in data["faqs"]
+    ]
+    graph = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Article",
+                "headline": data["title"],
+                "description": data["desc"],
+                "inLanguage": "ko-KR",
+                "datePublished": TODAY,
+                "dateModified": TODAY,
+                "author": {"@type": "Organization", "name": BRAND, "telephone": PHONE},
+                "publisher": {"@type": "Organization", "name": BRAND},
+                "mainEntityOfPage": page_url,
+                "about": [keyword, f"{region['sido']} {region['name']}", tag],
+                "keywords": f"{region['name']} {keyword}, {region['short']} {keyword}, {data['dong']} {keyword}, {BRAND}",
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": faq,
+            },
+            {
+                "@type": "HowTo",
+                "name": f"{region['name']} {keyword} 진행 과정",
+                "description": data["summary"],
+                "totalTime": "PT3H",
+                "step": steps,
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "홈", "item": BASE_URL + "/"},
+                    {"@type": "ListItem", "position": 2, "name": "작업후기", "item": BASE_URL + "/reviews/"},
+                    {"@type": "ListItem", "position": 3, "name": region["name"], "item": BASE_URL + f"/reviews/{region['slug']}/"},
+                    {"@type": "ListItem", "position": 4, "name": data["title"], "item": page_url},
+                ],
+            },
+        ],
+    }
+    return json.dumps(graph, ensure_ascii=False, indent=2)
+
+
+def detail_page_html(region: dict, kind: str, data: dict, folder: str, sibling: dict) -> str:
+    tag, keyword, process_label = keyword_meta(kind)
+    page_url = f"{BASE_URL}/reviews/{folder}/"
+    title = f"{data['title']} | {BRAND}"
+    desc = data["desc"]
+    kw = f"{region['name']} {keyword}, {region['short']} {keyword}, {data['dong']} {data['place']} {keyword}, {process_label}"
+    items = "\n".join(f"          <li>{item}</li>" for item in data["items"])
+    story = "\n".join(f"        <p>{p}</p>" for p in data["story"])
+    faqs = "\n".join(
+        f"""        <details>
+          <summary>{q}</summary>
+          <p>{a}</p>
+        </details>"""
+        for q, a in data["faqs"]
+    )
+    before = "\n".join(
+        f'          <img src="/images/cases/waste-before-{n:03d}.jpg" alt="{region["name"]} {keyword} 작업 전 {data["dong"]} {data["place"]} 현장" loading="lazy">'
+        for n in data["before"]
+    )
+    after = "\n".join(
+        f'          <img src="/images/cases/waste-after-{n:03d}.jpg" alt="{region["name"]} {keyword} 작업 후 {data["dong"]} {data["place"]} 현장" loading="lazy">'
+        for n in data["after"]
+    )
+    sibling_kind = "saenghwal" if kind == "isa" else "isa"
+    sibling_tag, sibling_kw, _ = keyword_meta(sibling_kind)
+    sibling_folder = f"{region['slug']}-{'isa' if sibling_kind == 'isa' else 'saenghwal'}"
+
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content="{desc}" />
+  <meta name="keywords" content="{kw}" />
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+  <link rel="canonical" href="{page_url}" />
+  <meta property="og:title" content="{title}" />
+  <meta property="og:description" content="{desc}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:url" content="{page_url}" />
+  <link rel="icon" href="/favicon-allbarun.png" />
+  <style>{SHARED_CSS}</style>
+  <script type="application/ld+json">
+{schema_json(region, kind, data, folder, page_url)}
+  </script>
+</head>
+<body>
+{header_html()}
+<main>
+  <article>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="breadcrumb"><a href="/">홈</a> · <a href="/reviews/">작업후기</a> · <a href="/reviews/{region['slug']}/">{region["name"]}</a> · {keyword}</div>
+      <div class="badge">{tag}</div>
+      <h1>{data["title"]}</h1>
+      <p>{data["summary"]}</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="article-box">
+        <h1>{data["title"]}</h1>
+        <p class="lead">{data["lead"]}</p>
+
+        <div class="summary-box">
+          <strong>{region["sido"]} {region["name"]} {keyword} 한눈에 보기</strong>
+          <p>{BRAND}가 {region["name"]} {data["dong"]} {data["place"]}에서 {keyword}를 진행한 작업후기입니다. 사진 상담 후 현장에서 폐기물 양과 반출 동선을 확인하고, 분류·운반·상차까지 한 번에 진행했습니다. 일반폐기물 비용은 30만원부터이며 현장 조건에 따라 달라집니다.</p>
+        </div>
+
+        <div class="fact-grid">
+          <div class="fact-item"><span>지역</span><b>{region["sido"]} {region["name"]} {data["dong"]}</b></div>
+          <div class="fact-item"><span>현장</span><b>{data["place"]} · {data["floor"]}</b></div>
+          <div class="fact-item"><span>작업 시간</span><b>{data["duration"]}</b></div>
+          <div class="fact-item"><span>차량</span><b>{data["vehicle"]}</b></div>
+        </div>
+
+        <h2>{region["name"]} {keyword} 현장 상황</h2>
+{story}
+
+        <h2>이번에 처리한 {tag} 품목</h2>
+        <ul class="item-list">
+{items}
+        </ul>
+
+        <h2>{region["name"]} {keyword} 진행 과정</h2>
+        <ol class="step-list">
+          <li>작업 전 사진으로 폐기물 양과 {data["place"]} 구조를 확인했습니다.</li>
+          <li>층수, 엘리베이터, 차량 대기 위치를 보고 작업 인원과 시간을 안내했습니다.</li>
+          <li>가구·가전과 생활폐기물을 구분해 포장·해체·운반 순서로 반출했습니다.</li>
+          <li>상차 후 세대와 이동 경로를 정리하고 현장 상태를 함께 확인했습니다.</li>
+        </ol>
+
+        <div class="photo-block">
+          <h2>작업 전 현장</h2>
+          <div class="photo-grid">
+{before}
+          </div>
+          <h2>작업 후 정리</h2>
+          <div class="photo-grid">
+{after}
+          </div>
+        </div>
+
+        <h2>{region["name"]} {keyword} 자주 묻는 질문</h2>
+        <div class="faq-list">
+{faqs}
+        </div>
+
+        <div class="cta-box">
+          <h2>{region["name"]} {keyword} 상담</h2>
+          <p>{region["name"]}에서 비슷한 {keyword}가 필요하시면 사진과 주소를 남겨 주세요. 폐기물 양과 반출 조건을 확인한 뒤 연락드립니다.</p>
+          <div class="btn-row">
+            <a href="tel:{PHONE_LINK}" class="btn btn-primary">전화 상담 {PHONE}</a>
+            <a href="{region["page"]}" class="btn btn-outline">{region["name"]} 폐기물처리 안내</a>
+            <a href="/reviews/" class="btn btn-outline">작업후기 목록</a>
+            <a href="/#contact" class="btn btn-outline">상담 접수</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </article>
+
+  <section class="related-section">
+    <div class="wrap">
+      <div class="title">
+        <span>{region["name"]} 관련 후기</span>
+        <h2>같은 지역 다른 작업후기</h2>
+      </div>
+      <div class="related-grid">
+        <a href="/reviews/{sibling_folder}/" class="related-card">
+          <h3>{sibling["title"]}</h3>
+          <p>{sibling["summary"]}</p>
+          <span>{sibling_tag} 후기 보기 →</span>
+        </a>
+        <a href="/reviews/{region["slug"]}/" class="related-card">
+          <h3>{region["existing_title"]}</h3>
+          <p>{region["name"]}에서 진행한 {region["existing_tag"]} 작업후기입니다.</p>
+          <span>{region["existing_tag"]} 후기 보기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related-section">
+    <div class="wrap">
+      <div class="title">
+        <span>올바른 관련 서비스</span>
+        <h2>서울·경기 올바른 서비스 바로가기</h2>
+      </div>
+      <div class="related-grid">
+        <a href="https://www.allbarunclean.com/" class="related-card" target="_blank" rel="noopener">
+          <h3>올바른수거</h3>
+          <p>서울·경기 전 지역 쓰레기집청소, 빈집정리, 유품·고독사·특수청소 등 종합 정리 서비스를 안내합니다.</p>
+          <span>www.allbarunclean.com →</span>
+        </a>
+        <a href="https://yupum.allbarunclean.com/" class="related-card" target="_blank" rel="noopener">
+          <h3>올바른 유품정리</h3>
+          <p>서울·경기 전 지역 유품정리, 고독사청소, 특수청소 등 유품·특수청소 서비스를 안내합니다.</p>
+          <span>yupum.allbarunclean.com →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+{footer_html(region, folder)}
+</body>
+</html>
+"""
+
+
+def list_cards_html() -> str:
+    cards = []
+    for region in REGIONS:
+        for kind, folder_suffix in (("isa", "isa"), ("saenghwal", "saenghwal")):
+            data = region[kind]
+            tag, _, _ = keyword_meta(kind)
+            cards.append(
+                f"""
+        <article class="review-card">
+          <span class="review-tag">{tag}</span>
+          <h3>{data["title"]}</h3>
+          <p>{data["summary"]}</p>
+          <a href="/reviews/{region["slug"]}-{folder_suffix}/" class="review-link">자세히 보기 →</a>
+        </article>"""
+            )
+    return "".join(cards)
+
+
+def list_section_html() -> str:
+    return f"""
+      {MARKER_START}
+      <div class="area-block">
+        <h3>이사폐기물처리 · 생활폐기물처리 작업후기</h3>
+        <p style="color:var(--muted);margin:0 0 18px;">서초·송파·마포·종로·동작과 성남·고양·용인·부천·안산 현장에서 진행한 이사폐기물처리·생활폐기물처리 후기입니다. 현장 조건, 처리 품목, 진행 과정을 확인할 수 있습니다.</p>
+        <div class="review-grid">
+{list_cards_html()}
+        </div>
+      </div>
+      {MARKER_END}
+"""
+
+
+def update_reviews_index(root: Path) -> None:
+    path = root / "reviews" / "index.html"
+    html = path.read_text(encoding="utf-8")
+    section = list_section_html()
+    if MARKER_START in html and MARKER_END in html:
+        html = re.sub(
+            re.escape(MARKER_START) + r".*?" + re.escape(MARKER_END),
+            section.strip(),
+            html,
+            count=1,
+            flags=re.S,
+        )
+    else:
+        needle = '      <div class="area-block">\n        <h3>서울특별시 25개 구</h3>'
+        if needle not in html:
+            raise SystemExit("reviews/index.html 삽입 위치를 찾지 못했습니다.")
+        html = html.replace(needle, section + "\n" + needle, 1)
+
+    old_desc = "서울·경기 현장에서 진행한 쓰레기집청소, 빈집정리, 가정·이사·폐업폐기물처리 작업후기를 지역별로 정리했습니다."
+    new_desc = "서울·경기 이사폐기물처리·생활폐기물처리 작업후기. 서초·송파·마포·종로·동작·성남·고양·용인·부천·안산 현장 과정을 확인할 수 있습니다."
+    html = html.replace(old_desc, new_desc, 1)
+    path.write_text(html, encoding="utf-8")
+
+
+def region_review_block(region: dict) -> str:
+    isa = region["isa"]
+    saeng = region["saenghwal"]
+    return f"""    <div class="review-grid">
+      <article class="review-card">
+        <span class="review-tag">이사폐기물</span>
+        <h3>{isa["title"]}</h3>
+        <p>{isa["summary"]}</p>
+        <a href="/reviews/{region["slug"]}-isa/" class="review-link">자세히 보기 →</a>
+      </article>
+      <article class="review-card">
+        <span class="review-tag">생활폐기물</span>
+        <h3>{saeng["title"]}</h3>
+        <p>{saeng["summary"]}</p>
+        <a href="/reviews/{region["slug"]}-saenghwal/" class="review-link">자세히 보기 →</a>
+      </article>
+      <article class="review-card">
+        <span class="review-tag">{region["existing_tag"]}</span>
+        <h3>{region["existing_title"]}</h3>
+        <p>{region["short"]}에서 진행한 {region["existing_tag"]} 작업후기입니다.</p>
+        <a href="/reviews/{region["slug"]}/" class="review-link">자세히 보기 →</a>
+      </article>
+    </div>
+    <div class="review-more">
+      <a href="/reviews/" class="btn secondary">전체 작업후기</a>
+    </div>"""
+
+
+def update_region_page(root: Path, region: dict) -> None:
+    rel = region["page"].lstrip("/")
+    path = root / rel
+    html = path.read_text(encoding="utf-8")
+    block = region_review_block(region)
+    patterns = [
+        re.compile(
+            r'    <div class="review-grid">.*?</div>\s*<div class="review-more">.*?</div>',
+            re.S,
+        ),
+        re.compile(
+            r'    <div class="review-promo">\s*<p>.*?</p>\s*<div class="review-promo-buttons">.*?</div>\s*</div>',
+            re.S,
+        ),
+    ]
+    new_html, n = html, 0
+    for pattern in patterns:
+        new_html, n = pattern.subn(block, html, count=1)
+        if n == 1:
+            break
+    if n != 1:
+        raise SystemExit(f"지역 페이지 후기 영역을 찾지 못했습니다: {path}")
+
+    footer_link = f'<a href="/reviews/{region["slug"]}/">{region["short"]} 작업후기</a>'
+    extra = (
+        f'{footer_link}\n'
+        f'        <a href="/reviews/{region["slug"]}-isa/">{region["name"]} 이사폐기물처리 후기</a>\n'
+        f'        <a href="/reviews/{region["slug"]}-saenghwal/">{region["name"]} 생활폐기물처리 후기</a>'
+    )
+    if f'{region["slug"]}-isa/' not in new_html[new_html.find("<footer"):]:
+        new_html = new_html.replace(footer_link, extra, 1)
+    path.write_text(new_html, encoding="utf-8")
+
+
+def patch_existing_review(root: Path, region: dict) -> None:
+    path = root / "reviews" / region["slug"] / "index.html"
+    html = path.read_text(encoding="utf-8")
+    if f'/reviews/{region["slug"]}-isa/' in html:
+        return
+    insert = f"""
+  <section class="related-section">
+    <div class="wrap">
+      <div class="title">
+        <span>{region["name"]} 추가 후기</span>
+        <h2>이사폐기물처리 · 생활폐기물처리</h2>
+      </div>
+      <div class="related-grid">
+        <a href="/reviews/{region["slug"]}-isa/" class="related-card">
+          <h3>{region["isa"]["title"]}</h3>
+          <p>{region["isa"]["summary"]}</p>
+          <span>이사폐기물처리 후기 →</span>
+        </a>
+        <a href="/reviews/{region["slug"]}-saenghwal/" class="related-card">
+          <h3>{region["saenghwal"]["title"]}</h3>
+          <p>{region["saenghwal"]["summary"]}</p>
+          <span>생활폐기물처리 후기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+"""
+    html = html.replace(
+        '  <section class="related-section">\n    <div class="wrap">\n      <div class="title">\n        <span>올바른 관련 서비스</span>',
+        insert + '  <section class="related-section">\n    <div class="wrap">\n      <div class="title">\n        <span>올바른 관련 서비스</span>',
+        1,
+    )
+    path.write_text(html, encoding="utf-8")
+
+
+def write_pages(root: Path) -> int:
+    count = 0
+    for region in REGIONS:
+        for kind, suffix in (("isa", "isa"), ("saenghwal", "saenghwal")):
+            folder = f"{region['slug']}-{suffix}"
+            sibling = region["saenghwal"] if kind == "isa" else region["isa"]
+            html = detail_page_html(region, kind, region[kind], folder, sibling)
+            out_dir = root / "reviews" / folder
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "index.html").write_text(html, encoding="utf-8")
+            count += 1
+    return count
+
+
+def main() -> None:
+    root = Path(__file__).resolve().parent
+    count = write_pages(root)
+    update_reviews_index(root)
+    for region in REGIONS:
+        update_region_page(root, region)
+        patch_existing_review(root, region)
+    print(f"완료: 키워드 후기 {count}페이지 생성")
+    print(f"완료: 지역 {len(REGIONS)}곳 페이지·기존 후기 내부링크 갱신")
+
+
+if __name__ == "__main__":
+    main()
