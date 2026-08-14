@@ -244,8 +244,8 @@ def case_image_path(kind, number):
     return f"/images/cases/waste-{kind}-{number:03d}.jpg"
 
 
-def pick_image_numbers(slug, kind, count):
-    rng = random.Random(f"{slug}:{kind}")
+def pick_image_numbers(slug, count):
+    rng = random.Random(slug)
     nums = list(range(1, 101))
     rng.shuffle(nums)
     return nums[:count]
@@ -258,15 +258,14 @@ def review_content(region_type, name, slug):
     title = rng.choice(profile["titles"]).format(name=name, place=place)
     summary = rng.choice(profile["summaries"])
     details = [rng.choice(profile["details"]).format(name=name, place=place) for _ in range(2)]
-    before_nums = pick_image_numbers(slug, "before", 2)
-    after_nums = pick_image_numbers(slug, "after", 2)
+    image_nums = pick_image_numbers(slug, 2)
     return {
         "tag": profile["tag"],
         "title": title,
         "summary": summary,
         "details": details,
-        "before_nums": before_nums,
-        "after_nums": after_nums,
+        "before_nums": image_nums,
+        "after_nums": image_nums,
         "region_type": region_type,
         "name": name,
         "slug": slug,
