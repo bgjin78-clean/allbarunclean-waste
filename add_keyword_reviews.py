@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -298,6 +299,7 @@ REGIONS = [
         "name": "성남시",
         "short": "성남",
         "page": "/gyeonggi/seongnam.html",
+        "guide_url": "https://seongnam.allbarunclean.com/",
         "existing_tag": "빈집정리",
         "existing_title": "성남시 오래 비운 주택 정리 작업후기",
         "isa": {
@@ -738,6 +740,7 @@ REGIONS = [
         "name": "남양주시",
         "short": "남양주",
         "page": "/gyeonggi/namyangju.html",
+        "guide_url": "https://namyangju.allbarunclean.com/",
         "existing_tag": "빈집정리",
         "existing_title": "남양주시 상가 빈집정리 작업후기",
         "isa": {
@@ -839,6 +842,61 @@ REGIONS = [
                 ("안양시 생활폐기물처리는 만안구 빌라도 되나요?", "됩니다. 동안구 평촌·비산과 만안구 안양·석수 빌라·아파트 모두 진행합니다."),
                 ("안양 생활폐기물처리 비용은 얼마인가요?", "일반폐기물 30만원부터이며 양·층수·주차 조건에 따라 달라집니다."),
                 ("안양시 생활폐기물처리 견적은 사진으로 가능한가요?", "가능합니다. 방·베란다·입구 사진을 보내주시면 대략 비용을 안내한 뒤 현장에서 확정합니다."),
+            ],
+        },
+    },
+    {
+        "slug": "suwon",
+        "sido": "경기",
+        "name": "수원시",
+        "short": "수원",
+        "page": "/gyeonggi/suwon.html",
+        "existing_tag": "가정폐기물",
+        "existing_title": "수원시 단독주택 생활폐기물 정리 작업후기",
+        "isa": {
+            "place": "아파트",
+            "dong": "영통동",
+            "title": "수원시 영통 아파트 이사폐기물처리 작업후기",
+            "summary": "경기 수원시 영통구 영통동 아파트에서 이사 나가기 전 주방 집기와 남은 가구·잔짐을 정리한 현장입니다.",
+            "desc": "수원 영통 아파트 이사폐기물처리 후기. 주방 집기·식탁·소형가전·잔짐을 3시간 만에 분류·반출. 일반폐기물 30만원부터, 사진 견적 가능.",
+            "floor": "15층, 엘리베이터 사용",
+            "duration": "약 3시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["식탁·의자", "주방 그릇·조리도구", "전자레인지·소형 가전", "수납 박스", "이사 잔짐·생활폐기물"],
+            "before": [36, 77],
+            "after": [36, 77],
+            "lead": "수원시 이사폐기물처리는 영통·광교처럼 대단지 아파트가 많아 엘리베이터 사용 시간과 하역 위치를 먼저 맞추는 것이 중요합니다. 영통동 아파트는 이사 전날 관리사무소에 엘리베이터 사용을 신청한 뒤 작업했습니다.",
+            "story": [
+                "이삿짐센터가 옮기지 않는 주방 그릇과 조리도구, 식탁, 소형 가전이 주방과 거실에 남아 있던 현장이었습니다. 상부장과 하부장 안에 있던 물건까지 모두 꺼내 분류했습니다.",
+                "식탁과 의자는 해체해 부피를 줄였고, 그릇과 유리류는 따로 포장해 운반 중 파손을 막았습니다. 작업 후 주방 수납장이 빈 상태로 정리되어 퇴거 점검을 바로 받을 수 있었습니다.",
+            ],
+            "faqs": [
+                ("수원시 이사폐기물처리, 영통·광교·권선·장안·팔달 모두 되나요?", "가능합니다. 수원시 4개 구 전 지역 아파트·빌라·주택을 상담합니다."),
+                ("주방 그릇이나 조리도구처럼 자잘한 짐도 처리하나요?", "처리합니다. 그릇·냄비·수납용품처럼 이삿짐센터가 옮기지 않는 잔짐도 분류해 함께 반출합니다."),
+                ("수원 이사폐기물처리 비용은 얼마부터인가요?", "일반폐기물 30만원부터입니다. 폐기물 양, 층수, 엘리베이터 사용 여부에 따라 달라지며 사진을 보내주시면 먼저 안내드립니다."),
+            ],
+        },
+        "saenghwal": {
+            "place": "주택",
+            "dong": "권선동",
+            "title": "수원시 권선동 주택 생활폐기물처리 작업후기",
+            "summary": "경기 수원시 권선구 권선동 주택 다용도실과 방에 쌓인 생활폐기물 봉투와 고장 난 세탁기를 처리한 현장입니다.",
+            "desc": "수원 권선동 주택 생활폐기물처리 후기. 쌓인 쓰레기봉투·고장 세탁기·잡동사니를 하루에 반출. 일반폐기물 30만원부터, 사진 보내면 바로 견적.",
+            "floor": "2층, 계단 반출",
+            "duration": "약 4시간",
+            "vehicle": "1톤 트럭 1대",
+            "items": ["생활폐기물 봉투", "고장 난 통돌이 세탁기", "주방 소형가전", "선반·액자", "재활용품·잡동사니"],
+            "before": [24, 68],
+            "after": [24, 68],
+            "lead": "수원시 생활폐기물처리는 권선·세류동처럼 오래된 주택이 많은 지역에서 다용도실과 방에 봉투가 오래 쌓인 경우가 많습니다. 권선동 주택은 골목에 차량을 대고 2층 계단으로 반출했습니다.",
+            "story": [
+                "다용도실에는 고장 난 세탁기와 묶어 둔 쓰레기봉투가, 방에는 페트병과 재활용품 봉투가 천장 가까이 쌓여 있었습니다. 통로부터 먼저 확보한 뒤 봉투를 계단으로 내렸습니다.",
+                "세탁기는 물을 빼고 단독으로 운반했고, 재활용품과 일반 생활폐기물을 나눠 상차했습니다. 작업 후 다용도실과 방 바닥이 드러나 청소와 수리를 바로 시작할 수 있었습니다.",
+            ],
+            "faqs": [
+                ("수원시 생활폐기물처리는 오래된 주택이나 빌라도 되나요?", "됩니다. 엘리베이터가 없는 주택·빌라도 계단 반출 인원을 맞춰 진행합니다."),
+                ("고장 난 세탁기나 냉장고도 같이 가져가나요?", "가능합니다. 생활폐기물과 함께 고장 난 가전과 가구도 한 번에 반출합니다."),
+                ("수원 생활폐기물처리 견적은 어떻게 받나요?", "방·다용도실·입구 사진과 주소, 층수를 010-4393-2414로 보내주시면 대략 비용을 안내하고 현장에서 확정합니다."),
             ],
         },
     },
@@ -1023,7 +1081,7 @@ def footer_html(region: dict, folder: str) -> str:
       <a href="https://yupum.allbarunclean.com/" target="_blank" rel="noopener">올바른 유품정리 · yupum.allbarunclean.com</a><br />
       <a href="/reviews/">작업후기 모음</a>
       <a href="/reviews/{folder}/">{region["name"]} 작업후기</a>
-      <a href="{region["page"]}">{region["name"]} 폐기물처리 안내</a>
+      <a href="{region.get("guide_url", region["page"])}">{region["name"]} 폐기물처리 안내</a>
     </div>
   </div>
 </footer>
@@ -1203,7 +1261,7 @@ def detail_page_html(region: dict, kind: str, data: dict, folder: str, sibling: 
           <p>{region["name"]}에서 비슷한 {keyword}가 필요하시면 사진과 주소를 남겨 주세요. 폐기물 양과 반출 조건을 확인한 뒤 연락드립니다.</p>
           <div class="btn-row">
             <a href="tel:{PHONE_LINK}" class="btn btn-primary">전화 상담 {PHONE}</a>
-            <a href="{region["page"]}" class="btn btn-outline">{region["name"]} 폐기물처리 안내</a>
+            <a href="{region.get("guide_url", region["page"])}" class="btn btn-outline">{region["name"]} 폐기물처리 안내</a>
             <a href="/reviews/" class="btn btn-outline">작업후기 목록</a>
             <a href="/#contact" class="btn btn-outline">상담 접수</a>
           </div>
@@ -1284,7 +1342,7 @@ def list_section_html() -> str:
       {MARKER_START}
       <div class="area-block">
         <h3>이사폐기물처리 · 생활폐기물처리 작업후기</h3>
-        <p style="color:var(--muted);margin:0 0 18px;">서초·송파·마포·종로·동작·용산·은평·노원과 성남·고양·용인·부천·안산·남양주·안양 현장에서 진행한 이사폐기물처리·생활폐기물처리 후기입니다. 현장 조건, 처리 품목, 진행 과정을 확인할 수 있습니다.</p>
+        <p style="color:var(--muted);margin:0 0 18px;">서초·송파·마포·종로·동작·용산·은평·노원과 성남·고양·용인·부천·안산·남양주·안양·수원 현장에서 진행한 이사폐기물처리·생활폐기물처리 후기입니다. 현장 조건, 처리 품목, 진행 과정을 확인할 수 있습니다.</p>
         <div class="review-grid">
 {list_cards_html()}
         </div>
@@ -1311,8 +1369,9 @@ def update_reviews_index(root: Path) -> None:
             raise SystemExit("reviews/index.html 삽입 위치를 찾지 못했습니다.")
         html = html.replace(needle, section + "\n" + needle, 1)
 
-    new_desc = "서울·경기 이사폐기물처리·생활폐기물처리 작업후기. 서초·송파·마포·종로·동작·용산·은평·노원·성남·고양·용인·부천·안산·남양주·안양 현장 과정을 확인할 수 있습니다."
+    new_desc = "서울·경기 폐기물처리 실제 작업후기 모음. 이사·생활폐기물, 쓰레기집청소, 빈집정리 현장의 작업 전·후 사진과 비용 기준(일반폐기물 30만원~)을 지역별로 확인하세요."
     for old_desc in (
+        "서울·경기 이사폐기물처리·생활폐기물처리 작업후기. 서초·송파·마포·종로·동작·용산·은평·노원·성남·고양·용인·부천·안산·남양주·안양 현장 과정을 확인할 수 있습니다.",
         "서울·경기 현장에서 진행한 쓰레기집청소, 빈집정리, 가정·이사·폐업폐기물처리 작업후기를 지역별로 정리했습니다.",
         "서울·경기 이사폐기물처리·생활폐기물처리 작업후기. 서초·송파·마포·종로·동작·성남·고양·용인·부천·안산 현장 과정을 확인할 수 있습니다.",
     ):
@@ -1417,9 +1476,9 @@ def patch_existing_review(root: Path, region: dict) -> None:
     path.write_text(html, encoding="utf-8")
 
 
-def write_pages(root: Path) -> int:
+def write_pages(root: Path, regions: list[dict]) -> int:
     count = 0
-    for region in REGIONS:
+    for region in regions:
         for kind, suffix in (("isa", "isa"), ("saenghwal", "saenghwal")):
             folder = f"{region['slug']}-{suffix}"
             sibling = region["saenghwal"] if kind == "isa" else region["isa"]
@@ -1433,13 +1492,15 @@ def write_pages(root: Path) -> int:
 
 def main() -> None:
     root = Path(__file__).resolve().parent
-    count = write_pages(root)
+    only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
+    regions = [r for r in REGIONS if only is None or r["slug"] in only]
+    count = write_pages(root, regions)
     update_reviews_index(root)
-    for region in REGIONS:
+    for region in regions:
         update_region_page(root, region)
         patch_existing_review(root, region)
     print(f"완료: 키워드 후기 {count}페이지 생성")
-    print(f"완료: 지역 {len(REGIONS)}곳 페이지·기존 후기 내부링크 갱신")
+    print(f"완료: 지역 {len(regions)}곳 페이지·기존 후기 내부링크 갱신")
 
 
 if __name__ == "__main__":
