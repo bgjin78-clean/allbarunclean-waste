@@ -42,6 +42,12 @@ SITE_SOURCES: dict[str, dict] = {
     "동작구": {"file": "동작구.csv", "label": "동작구 스마트클린 대형폐기물 수수료 안내", "url": "https://smartclean.dongjak.go.kr/online/bulky/item"},
     "송파구": {"file": "송파구.csv", "label": "송파구청 대형폐기물 품목별 수거기준 및 비용", "url": "https://www.songpa.go.kr/www/exhaustPrdlstList.do?key=2118&rep=1", "date_label": "페이지 수정일"},
     "강동구": {"file": "강동구.csv", "label": "강동구청 대형폐기물 수집·운반 수수료", "url": "https://www.gangdong.go.kr/web/newportal/largeWaste/code/list", "date_label": "페이지 수정일"},
+    "성동구": {"file": "성동구.csv", "label": "성동구청 대형폐기물 배출신청 품목 및 수수료", "url": "https://www.sd.go.kr/main/selectWstePrdWebPopList.do?key=4180"},
+    "동대문구": {"file": "동대문구.csv", "label": "동대문구청 대형폐기물 수수료표(조례 별표 1)", "url": "https://www.ddm.go.kr/www/contents.do?key=82"},
+    "도봉구": {"file": "도봉구.csv", "label": "도봉구 스마트클린 대형폐기물 수수료 안내", "url": "https://smartclean.dobong.go.kr/online/bulky/item"},
+    "은평구": {"file": "은평구.csv", "label": "은평구 스마트클린 대형폐기물 수수료 안내", "url": "https://smartclean.ep.go.kr/online/bulky/item"},
+    "서대문구": {"file": "서대문구.csv", "label": "서대문구청 대형폐기물 규격 및 수수료", "url": "https://www.sdm.go.kr/civil/print/waste/standards.do"},
+    "마포구": {"file": "마포구.csv", "label": "마포구청 대형폐기물 배출안내 부과기준표", "url": "https://www.mapo.go.kr/site/main/content/mapo05060502", "date_label": "페이지 수정일"},
     "의정부시": {"file": "의정부시.csv", "label": "공공데이터포털 의정부도시공사_대형폐기물 품목별 수수료", "url": "https://www.data.go.kr/data/15100221/fileData.do", "lookup": "https://www.uiuc.or.kr/businessInfo/environmentPage/bigtrash/list.do"},
     "하남시": {"file": "하남시.csv", "label": "하남시 대형폐기물 배출신고 처리비용안내", "url": "https://www.hanam.go.kr/clean/contents/order_item.php?cIdx=4", "date_label": "수수료 기준표 시행일", "lookup": "https://www.hanam.go.kr/clean/main/index.php"},
     "구리시": {"file": "구리시.csv", "label": "구리시청 대형폐기물 배출 수수료(조례 별표 2)", "url": "https://www.guri.go.kr/downloadContentsFile.do?key=767&fileNo=1021", "date_label": "조례 개정일"},
@@ -125,7 +131,7 @@ def rows_from_csv(path: Path, default_date: str = "") -> list[dict]:
     rows = []
     for r in csv.DictReader(io.StringIO(text)):
         r = {clean(k): v for k, v in r.items() if k}
-        item = pick(r, "품목", "품명", "물품", "페기물품목", "폐기물품목", "대형폐기물명")
+        item = pick(r, "품목", "품명", "물품", "페기물품목", "폐기물품목", "대형폐기물명").rstrip(".").strip()
         fee = to_fee(pick(r, "수수료", "부과금액", "단가", "수거수수료(원)", "수수료(안)", "금액"))
         if not item or fee is None or item == "없는품목":
             continue
