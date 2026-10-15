@@ -1147,6 +1147,146 @@ footer{
     display:block;
 }
 
+.bulky-fee{
+    background:#fff;
+}
+
+.bulky-fee h3{
+    margin:28px 0 14px;
+    color:#0f172a;
+    font-size:1.25rem;
+}
+
+.fee-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 20px;
+    background:#ecfdf5;
+    border:1px solid #d1fae5;
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:14px;
+    color:#334155;
+}
+
+.fee-meta b{
+    color:#047857;
+    margin-right:4px;
+}
+
+.fee-meta a{
+    color:#047857;
+    text-decoration:underline;
+}
+
+.fee-table-wrap{
+    overflow-x:auto;
+    border:1px solid #e2e8f0;
+    border-radius:16px;
+    background:#fff;
+}
+
+.fee-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+}
+
+.fee-table th{
+    position:sticky;
+    top:0;
+    background:#0f172a;
+    color:#fff;
+    text-align:left;
+    padding:12px 16px;
+    white-space:nowrap;
+}
+
+.fee-table td{
+    padding:11px 16px;
+    border-top:1px solid #e2e8f0;
+    color:#334155;
+}
+
+.fee-table tbody tr:nth-child(even) td{
+    background:#f8fafc;
+}
+
+.fee-table .fee{
+    text-align:right;
+    white-space:nowrap;
+}
+
+.fee-table td.fee{
+    font-weight:800;
+    color:#0f172a;
+}
+
+.fee-all{
+    margin-top:18px;
+}
+
+.fee-all summary{
+    cursor:pointer;
+    font-weight:800;
+    color:#047857;
+    padding:12px 0;
+}
+
+.fee-all .fee-table-wrap{
+    max-height:560px;
+    overflow:auto;
+}
+
+.fee-link-btn{
+    display:inline-block;
+    margin-top:16px;
+    padding:13px 20px;
+    border-radius:10px;
+    background:#0f172a;
+    color:#fff;
+    font-weight:700;
+}
+
+.fee-notes{
+    margin:22px 0 0;
+    padding-left:20px;
+    color:#475569;
+}
+
+.fee-notes li{
+    margin-bottom:6px;
+}
+
+.fee-cta{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    margin-top:22px;
+    padding:20px 22px;
+    border-radius:16px;
+    background:#0f172a;
+    color:#fff;
+}
+
+.fee-cta p{
+    margin:0;
+    font-weight:700;
+}
+
+@media(max-width:768px){
+    .fee-table{
+        font-size:14px;
+    }
+
+    .fee-table th,
+    .fee-table td{
+        padding:10px 12px;
+    }
+}
+
 .floating-call{
     position:fixed;
     right:18px;
