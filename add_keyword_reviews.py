@@ -1045,10 +1045,17 @@ SHARED_CSS = r"""
 """
 
 
+KIND_META = {
+    "isa": ("이사폐기물", "이사폐기물처리", "이사 전후 폐기물 정리"),
+    "saenghwal": ("생활폐기물", "생활폐기물처리", "가정 생활폐기물 정리"),
+    "pyeup": ("폐업폐기물", "폐업폐기물처리", "폐업 사무실·매장 집기 정리"),
+    "sseuregi": ("쓰레기집청소", "쓰레기집청소", "쓰레기집 폐기물 반출·정리"),
+    "binjip": ("빈집정리", "빈집정리", "오래 비운 집 잔여물 정리"),
+}
+
+
 def keyword_meta(kind: str) -> tuple[str, str, str]:
-    if kind == "isa":
-        return "이사폐기물", "이사폐기물처리", "이사 전후 폐기물 정리"
-    return "생활폐기물", "생활폐기물처리", "가정 생활폐기물 정리"
+    return KIND_META[kind]
 
 
 def header_html() -> str:
@@ -1145,7 +1152,7 @@ def schema_json(region: dict, kind: str, data: dict, folder: str, page_url: str)
     return json.dumps(graph, ensure_ascii=False, indent=2)
 
 
-def detail_page_html(region: dict, kind: str, data: dict, folder: str, sibling: dict) -> str:
+def detail_page_html(region: dict, kind: str, data: dict, folder: str, sibling: dict, sibling_kind: str | None = None) -> str:
     tag, keyword, process_label = keyword_meta(kind)
     page_url = f"{BASE_URL}/reviews/{folder}/"
     title = f"{data['title']} | {BRAND}"
@@ -1168,9 +1175,9 @@ def detail_page_html(region: dict, kind: str, data: dict, folder: str, sibling: 
         f'          <img src="/images/cases/waste-after-{n:03d}.jpg" alt="{region["name"]} {keyword} 작업 후 {data["dong"]} {data["place"]} 현장" loading="lazy">'
         for n in data["before"]
     )
-    sibling_kind = "saenghwal" if kind == "isa" else "isa"
+    sibling_kind = sibling_kind or ("saenghwal" if kind == "isa" else "isa")
     sibling_tag, sibling_kw, _ = keyword_meta(sibling_kind)
-    sibling_folder = f"{region['slug']}-{'isa' if sibling_kind == 'isa' else 'saenghwal'}"
+    sibling_folder = f"{region['slug']}-{sibling_kind}"
 
     return f"""<!DOCTYPE html>
 <html lang="ko">
